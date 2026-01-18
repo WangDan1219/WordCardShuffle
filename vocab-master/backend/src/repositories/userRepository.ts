@@ -1,0 +1,134 @@
+import db from '../config/database.js';
+import type { UserRow, UserSettingsRow, UserStatsRow } from '../types/index.js';
+
+export const userRepository = {
+  create(username: string, passwordHash: string, displayName?: string): UserRow {
+    const stmt = db.prepare(`
+      INSERT INTO users (username, password_hash, display_name)
+      VALUES (?, ?, ?)
+    `);
+
+    const result = stmt.run(username, passwordHash, displayName || null);
+    const userId = result.lastInsertRowid as number;
+
+    // Create default settings and stats for the user
+    db.prepare(`
+      INSERT INTO user_settings (user_id, sound_enabled, auto_advance)
+      VALUES (?, 1, 0)
+    `).run(userId);
+
+    db.prepare(`
+      INSERT INTO user_stats (user_id, total_words_studied, quizzes_taken, challenges_completed, best_challenge_score, last_study_date)
+      VALUES (?, 0, 0, 0, 0, NULL)
+    `).run(userId);
+
+    return this.findById(userId)!;
+  },
+
+  findById(id: number): UserRow | undefined {
+    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+    return stmt.get(id) as UserRow | undefined;
+  },
+
+  findByUsername(username: string): UserRow | undefined {
+    const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
+    return stmt.get(username) as UserRow | undefined;
+  },
+
+  updateDisplayName(userId: number, displayName: string): void {
+    const stmt = db.prepare('UPDATE users SET display_name = ? WHERE id = ?');
+    stmt.run(displayName, userId);
+  },
+
+  delete(userId: number): void {
+    const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+    stmt.run(userId);
+  }
+};
+
+export const settingsRepository = {
+  get(userId: number): UserSettingsRow | undefined {
+    const stmt = db.prepare('SELECT * FROM user_settings WHERE user_id = ?');
+    return stmt.get(userId) as UserSettingsRow | undefined;
+  },
+
+  update(userId: number, soundEnabled?: boolean, autoAdvance?: boolean): UserSettingsRow {
+    const current = this.get(userId);
+    if (!current) {
+      throw new Error('Settings not found for user');
+    }
+
+    const newSoundEnabled = soundEnabled !== undefined ? (soundEnabled ? 1 : 0) : current.sound_enabled;
+    const newAutoAdvance = autoAdvance !== undefined ? (autoAdvance ? 1 : 0) : current.auto_advance;
+
+    const stmt = db.prepare(`
+      UPDATE user_settings
+      SET sound_enabled = ?, auto_advance = ?
+      WHERE user_id = ?
+    `);
+    stmt.run(newSoundEnabled, newAutoAdvance, userId);
+
+    return this.get(userId)!;
+  }
+};
+
+export const statsRepository = {
+  get(userId: number): UserStatsRow | undefined {
+    const stmt = db.prepare('SELECT * FROM user_stats WHERE user_id = ?');
+    return stmt.get(userId) as UserStatsRow | undefined;
+  },
+
+  update(userId: number, updates: {
+    totalWordsStudied?: number;
+    quizzesTaken?: number;
+    challengesCompleted?: number;
+    bestChallengeScore?: number;
+    lastStudyDate?: string | null;
+  }): UserStatsRow {
+    const current = this.get(userId);
+    if (!current) {
+      throw new Error('Stats not found for user');
+    }
+
+    const newStats = {
+      total_words_studied: updates.totalWordsStudied ?? current.total_words_studied,
+      quizzes_taken: updates.quizzesTaken ?? current.quizzes_taken,
+      challenges_completed: updates.challengesCompleted ?? current.challenges_completed,
+      best_challenge_score: updates.bestChallengeScore ?? current.best_challenge_score,
+      last_study_date: updates.lastStudyDate !== undefined ? updates.lastStudyDate : current.last_study_date
+    };
+
+    const stmt = db.prepare(`
+      UPDATE user_stats
+      SET total_words_studied = ?, quizzes_taken = ?, challenges_completed = ?, best_challenge_score = ?, last_study_date = ?
+      WHERE user_id = ?
+    `);
+    stmt.run(
+      newStats.total_words_studied,
+      newStats.quizzes_taken,
+      newStats.challenges_completed,
+      newStats.best_challenge_score,
+      newStats.last_study_date,
+      userId
+    );
+
+    return this.get(userId)!;
+  },
+
+  incrementStats(userId: number, increments: {
+    totalWordsStudied?: number;
+    quizzesTaken?: number;
+    challengesCompleted?: number;
+  }): UserStatsRow {
+    const current = this.get(userId);
+    if (!current) {
+      throw new Error('Stats not found for user');
+    }
+
+    return this.update(userId, {
+      totalWordsStudied: current.total_words_studied + (increments.totalWordsStudied || 0),
+      quizzesTaken: current.quizzes_taken + (increments.quizzesTaken || 0),
+      challengesCompleted: current.challenges_completed + (increments.challengesCompleted || 0),
+    });
+  }
+};

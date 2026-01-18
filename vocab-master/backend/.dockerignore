@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+
+# Development files
+.git
+.gitignore
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Temporary files
+*.tmp
+*.temp
+
+# Data directory (should be a volume)
+data/

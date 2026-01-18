@@ -1,0 +1,77 @@
+import { Request, Response, NextFunction } from 'express';
+import { z, ZodSchema } from 'zod';
+
+export function validate<T>(schema: ZodSchema<T>) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          error: 'Validation Error',
+          message: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        });
+        return;
+      }
+      next(error);
+    }
+  };
+}
+
+// Validation schemas
+export const registerSchema = z.object({
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must be at most 100 characters'),
+  displayName: z.string()
+    .min(1)
+    .max(50)
+    .optional()
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required')
+});
+
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token is required')
+});
+
+export const updateSettingsSchema = z.object({
+  soundEnabled: z.boolean().optional(),
+  autoAdvance: z.boolean().optional()
+}).refine(data => data.soundEnabled !== undefined || data.autoAdvance !== undefined, {
+  message: 'At least one setting must be provided'
+});
+
+export const updateStatsSchema = z.object({
+  totalWordsStudied: z.number().int().min(0).optional(),
+  quizzesTaken: z.number().int().min(0).optional(),
+  challengesCompleted: z.number().int().min(0).optional(),
+  bestChallengeScore: z.number().int().min(0).optional(),
+  lastStudyDate: z.string().nullable().optional()
+});
+
+export const completeChallengeSchema = z.object({
+  score: z.number().int().min(0).max(10000, 'Score cannot exceed 10000')
+});
+
+export const importDataSchema = z.object({
+  settings: z.object({
+    soundEnabled: z.boolean(),
+    autoAdvance: z.boolean()
+  }).optional(),
+  stats: z.object({
+    totalWordsStudied: z.number().int().min(0),
+    quizzesTaken: z.number().int().min(0),
+    challengesCompleted: z.number().int().min(0),
+    bestChallengeScore: z.number().int().min(0),
+    lastStudyDate: z.string().nullable()
+  }).optional()
+});

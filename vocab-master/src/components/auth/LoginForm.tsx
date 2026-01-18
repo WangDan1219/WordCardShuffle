@@ -1,0 +1,106 @@
+import React, { useState } from 'react';
+import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
+
+interface LoginFormProps {
+  onSubmit: (username: string, password: string) => Promise<void>;
+  onSwitchToRegister: () => void;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export function LoginForm({ onSubmit, onSwitchToRegister, isLoading, error }: LoginFormProps) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || !password.trim()) return;
+    await onSubmit(username.trim(), password);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label htmlFor="username" className="block text-sm font-medium text-gray-200 mb-2">
+          Username
+        </label>
+        <input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          placeholder="Enter your username"
+          disabled={isLoading}
+          autoComplete="username"
+          autoFocus
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">
+          Password
+        </label>
+        <div className="relative">
+          <input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all pr-12"
+            placeholder="Enter your password"
+            disabled={isLoading}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isLoading || !username.trim() || !password.trim()}
+        className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 size={20} className="animate-spin" />
+            Signing in...
+          </>
+        ) : (
+          <>
+            <LogIn size={20} />
+            Sign In
+          </>
+        )}
+      </button>
+
+      <div className="text-center">
+        <span className="text-gray-400">Don't have an account? </span>
+        <button
+          type="button"
+          onClick={onSwitchToRegister}
+          className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+          disabled={isLoading}
+        >
+          Create one
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export default LoginForm;

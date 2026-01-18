@@ -1,0 +1,32 @@
+{
+  "name": "vocab-master-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Vocab Master multi-user application",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "migrate": "tsx src/config/migrate.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "better-sqlite3": "^11.7.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/cors": "^2.8.17",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3",
+    "tsx": "^4.19.2"
+  }
+}

@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+/* Custom theme variables */
+@theme {
+  /* Primary colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Study mode colors */
+  --color-study-light: #d1fae5;
+  --color-study: #10b981;
+  --color-study-dark: #059669;
+
+  /* Quiz mode colors */
+  --color-quiz-light: #fef3c7;
+  --color-quiz: #f59e0b;
+  --color-quiz-dark: #d97706;
+
+  /* Challenge mode colors */
+  --color-challenge-light: #fee2e2;
+  --color-challenge: #ef4444;
+  --color-challenge-dark: #dc2626;
+
+  /* Feedback colors */
+  --color-correct: #22c55e;
+  --color-incorrect: #ef4444;
+
+  /* Font family */
+  --font-sans: 'Nunito', system-ui, sans-serif;
+
+  /* Box shadows */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-mode-card: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Animations */
+  --animate-shake: shake 0.5s ease-in-out;
+  --animate-flip: flip 0.6s ease-in-out;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes flip {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(180deg); }
+}
+
+/* Base styles */
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  background-color: #f9fafb;
+  color: #111827;
+  min-height: 100vh;
+}
+
+/* Utility styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-mode-card {
+  box-shadow: var(--shadow-mode-card);
+}
+
+.pill-synonym {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
