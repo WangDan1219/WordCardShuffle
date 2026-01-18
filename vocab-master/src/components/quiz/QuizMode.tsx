@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
 import { QuizSetup } from './QuizSetup';
+import { UserMenu } from '../common/UserMenu';
 import { QuestionCard } from './QuestionCard';
 import { QuizResults } from './QuizResults';
 import { useApp } from '../../contexts/AppContext';
@@ -136,22 +137,27 @@ export function QuizMode() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-quiz-light/30 to-gray-50">
-      {/* Top bar - only show during quiz */}
-      {state.status !== 'setup' && state.status !== 'complete' && (
+      {/* Top bar - show during setup and quiz */}
+      {state.status !== 'complete' && (
         <TopBar
           onBack={handleHome}
-          title={`Question ${state.currentIndex + 1}/${state.totalQuestions}`}
+          title={state.status === 'setup' ? 'Quiz Settings' : `Question ${state.currentIndex + 1}/${state.totalQuestions}`}
           rightContent={
-            config.timePerQuestion !== null ? (
-              <Timer
-                timeRemaining={timer.timeRemaining}
-                totalTime={config.timePerQuestion}
-                variant="both"
-                onWarning={playWarning}
-              />
-            ) : (
-              <span className="text-sm text-gray-500 font-medium">No time limit</span>
-            )
+            <div className="flex items-center gap-3">
+              {state.status === 'active' && (
+                config.timePerQuestion !== null ? (
+                  <Timer
+                    timeRemaining={timer.timeRemaining}
+                    totalTime={config.timePerQuestion}
+                    variant="both"
+                    onWarning={playWarning}
+                  />
+                ) : (
+                  <span className="text-sm text-gray-500 font-medium">No time limit</span>
+                )
+              )}
+              <UserMenu />
+            </div>
           }
         />
       )}

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { BookOpen, Brain, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { ModeCard } from './ModeCard';
+import { UserMenu } from '../common/UserMenu';
 import { useApp } from '../../contexts/AppContext';
 import { useAudio } from '../../hooks/useAudio';
 import { StorageService } from '../../services/StorageService';
@@ -48,6 +49,11 @@ export function Dashboard() {
               )}
             </button>
           </div>
+        </div>
+
+        {/* User Menu - Fixed at top right for Dashboard */}
+        <div className="fixed top-4 right-4 z-50">
+          <UserMenu />
         </div>
       </motion.header>
 

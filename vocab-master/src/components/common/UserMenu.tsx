@@ -32,7 +32,7 @@ export function UserMenu() {
   const displayName = authState.user.displayName || authState.user.username;
 
   return (
-    <div className="fixed top-4 right-4 z-50" ref={menuRef}>
+    <div className="relative z-50" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-lg hover:bg-slate-700/80 transition-colors"
@@ -40,7 +40,7 @@ export function UserMenu() {
         <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
           <User size={16} className="text-white" />
         </div>
-        <span className="text-white text-sm font-medium max-w-[120px] truncate">
+        <span className="text-white text-sm font-medium max-w-[120px] truncate hidden sm:block">
           {displayName}
         </span>
         {appState.isSyncing ? (
@@ -56,9 +56,9 @@ export function UserMenu() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
             className="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden"
           >
@@ -88,6 +88,7 @@ export function UserMenu() {
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-left text-red-400 hover:bg-slate-700/50 flex items-center gap-2 transition-colors"
+                disabled={appState.isSyncing}
               >
                 <LogOut size={16} />
                 Sign out

@@ -7,7 +7,6 @@ import { Dashboard } from './components/dashboard';
 import { StudyMode } from './components/study';
 import { QuizMode } from './components/quiz';
 import { DailyChallenge } from './components/challenge';
-import { UserMenu } from './components/common/UserMenu';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
@@ -32,8 +31,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen">
-      {/* User Menu - shown on all pages */}
-      <UserMenu />
+
 
       <AnimatePresence mode="wait">
         <motion.div

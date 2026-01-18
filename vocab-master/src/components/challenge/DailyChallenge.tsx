@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Flame, Trophy } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
+import { UserMenu } from '../common/UserMenu';
 import { QuestionCard } from '../quiz/QuestionCard';
 import { TypeQuestion } from './TypeQuestion';
 import { ChallengeResults } from './ChallengeResults';
@@ -303,6 +304,8 @@ export function DailyChallenge() {
               variant="both"
               onWarning={playWarning}
             />
+
+            <UserMenu />
           </div>
         }
       />

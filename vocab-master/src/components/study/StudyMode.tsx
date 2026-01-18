@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
 import { ProgressBar } from '../common';
+import { UserMenu } from '../common/UserMenu';
 import { FlashCard } from './FlashCard';
 import { useApp } from '../../contexts/AppContext';
 import { useStudyMode } from '../../hooks/useStudyMode';
@@ -78,13 +79,16 @@ export function StudyMode() {
         onBack={handleBack}
         title={`Card ${currentIndex + 1}/${totalCards}`}
         rightContent={
-          <button
-            onClick={handleReset}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Shuffle deck"
-          >
-            <RotateCcw className="w-5 h-5 text-gray-600" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReset}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Shuffle deck"
+            >
+              <RotateCcw className="w-5 h-5 text-gray-600" />
+            </button>
+            <UserMenu />
+          </div>
         }
       />
 
