@@ -9,13 +9,14 @@ const router = Router();
 router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user!.userId;
-        const { wordsReviewed, startTime, endTime } = req.body;
+        const { wordsReviewed, startTime, endTime, words } = req.body;
 
         const sessionId = quizResultRepository.createStudySession({
             userId,
             wordsReviewed,
             startTime: new Date(startTime),
-            endTime: new Date(endTime)
+            endTime: new Date(endTime),
+            words
         });
 
         res.status(201).json({

@@ -79,11 +79,13 @@ export function StudyMode() {
     // Save study session
     const uniqueWords = reviewedWordsRef.current.size;
     if (uniqueWords > 0) {
+      const wordsList = Array.from(reviewedWordsRef.current);
       import('../../services/ApiService').then(({ default: api }) => {
         api.saveStudySession({
           wordsReviewed: uniqueWords,
           startTime: new Date(startTimeRef.current).toISOString(),
-          endTime: new Date().toISOString()
+          endTime: new Date().toISOString(),
+          words: wordsList
         }).catch(err => console.error('Failed to save study session:', err));
       });
     }

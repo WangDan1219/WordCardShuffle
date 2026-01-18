@@ -150,6 +150,18 @@ export function initializeDatabase(): void {
     )
   `);
 
+  // User Vocabulary (track unique words)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_vocabulary (
+      user_id INTEGER NOT NULL,
+      word TEXT NOT NULL,
+      first_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, word),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   // Indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_quiz_results_user_id ON quiz_results(user_id);

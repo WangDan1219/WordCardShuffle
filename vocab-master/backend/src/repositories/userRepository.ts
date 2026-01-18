@@ -43,6 +43,38 @@ export const userRepository = {
   delete(userId: number): void {
     const stmt = db.prepare('DELETE FROM users WHERE id = ?');
     stmt.run(userId);
+  },
+
+  addLearnedWords(userId: number, words: string[]): number {
+    if (words.length === 0) return 0;
+
+    const insert = db.prepare(`
+      INSERT OR IGNORE INTO user_vocabulary (user_id, word)
+      VALUES (?, ?)
+    `);
+
+    const updateLastSeen = db.prepare(`
+      UPDATE user_vocabulary 
+      SET last_seen_at = CURRENT_TIMESTAMP 
+      WHERE user_id = ? AND word = ?
+    `);
+
+    let newWordsCount = 0;
+
+    const transaction = db.transaction(() => {
+      for (const word of words) {
+        const result = insert.run(userId, word);
+        if (result.changes > 0) {
+          newWordsCount++;
+        } else {
+          // If word exists, update last_seen_at
+          updateLastSeen.run(userId, word);
+        }
+      }
+    });
+
+    transaction();
+    return newWordsCount;
   }
 };
 

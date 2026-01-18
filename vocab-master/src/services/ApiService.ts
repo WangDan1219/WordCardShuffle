@@ -62,6 +62,8 @@ export interface ApiError {
   message: string;
 }
 
+
+
 // Quiz Result Interfaces
 export interface SaveQuizResultRequest {
   quizType: 'quiz' | 'challenge';
@@ -87,6 +89,7 @@ export interface SaveStudySessionRequest {
   wordsReviewed: number;
   startTime: string;
   endTime: string;
+  words?: string[];
 }
 
 // Admin Interfaces
