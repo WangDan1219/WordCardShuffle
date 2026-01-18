@@ -11,6 +11,7 @@ export interface User {
   id: number;
   username: string;
   displayName: string | null;
+  role: 'student' | 'parent' | 'admin';
   createdAt: string;
 }
 
@@ -59,6 +60,54 @@ export interface CompleteChallengeResponse {
 export interface ApiError {
   error: string;
   message: string;
+}
+
+// Quiz Result Interfaces
+export interface SaveQuizResultRequest {
+  quizType: 'quiz' | 'challenge';
+  totalQuestions: number;
+  correctAnswers: number;
+  score: number;
+  timePerQuestion: number | null;
+  totalTimeSpent: number;
+  pointsEarned: number;
+  answers: Array<{
+    questionIndex: number;
+    word: string;
+    promptType: string;
+    questionFormat: string;
+    correctAnswer: string;
+    selectedAnswer: string | null;
+    isCorrect: boolean;
+    timeSpent: number;
+  }>;
+}
+
+export interface SaveStudySessionRequest {
+  wordsReviewed: number;
+  startTime: string;
+  endTime: string;
+}
+
+// Admin Interfaces
+
+export interface AdminUserStats {
+  id: number;
+  username: string;
+  display_name: string | null;
+  role: 'student' | 'parent' | 'admin';
+  parent_id: number | null;
+  created_at: string;
+  quizzes_taken: number;
+  total_words_studied: number;
+  last_study_date: string | null;
+  avg_score: number | null;
+}
+
+export interface AdminUserDetails {
+  quizHistory: any[];
+  studyHistory: any[];
+  weakWords: any[];
 }
 
 class ApiServiceClass {
@@ -301,6 +350,45 @@ class ApiServiceClass {
 
   async exportData(): Promise<{ settings: UserSettings; stats: UserStats }> {
     return this.fetchWithAuth('/migrate/export');
+  }
+
+  // Quiz & Study Result methods
+  async saveQuizResult(data: SaveQuizResultRequest): Promise<{ success: boolean; resultId: number }> {
+    return this.fetchWithAuth<{ success: boolean; resultId: number }>('/quiz-results', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async saveStudySession(data: SaveStudySessionRequest): Promise<{ success: boolean; sessionId: number }> {
+    return this.fetchWithAuth<{ success: boolean; sessionId: number }>('/study-stats', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+
+
+  async getAdminUsers(): Promise<AdminUserStats[]> {
+    return this.fetchWithAuth<AdminUserStats[]>('/admin/users');
+  }
+
+  async getAdminUserDetails(userId: number): Promise<AdminUserDetails> {
+    return this.fetchWithAuth<AdminUserDetails>(`/admin/users/${userId}/details`);
+  }
+
+  async updateUserRole(userId: number, role: 'student' | 'parent' | 'admin'): Promise<void> {
+    return this.fetchWithAuth<void>(`/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role })
+    });
+  }
+
+  async updateUserParent(userId: number, parentId: number | null): Promise<void> {
+    return this.fetchWithAuth<void>(`/admin/users/${userId}/parent`, {
+      method: 'PATCH',
+      body: JSON.stringify({ parentId })
+    });
   }
 
   // Health check

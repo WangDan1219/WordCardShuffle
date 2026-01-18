@@ -60,6 +60,45 @@ export function QuizMode() {
     }
   }, [state.status, state.currentIndex, config.timePerQuestion]);
 
+  // Save results when quiz is complete
+  useEffect(() => {
+    if (state.status === 'complete') {
+      const saveResults = async () => {
+        try {
+          // Calculate total time
+          const totalTimeSpent = state.answers.reduce((acc, curr) => acc + curr.timeSpent, 0);
+
+          await import('../../services/ApiService').then(({ default: api }) => api.saveQuizResult({
+            quizType: 'quiz',
+            totalQuestions: state.totalQuestions,
+            correctAnswers: state.score, // Score tracks correct answers in useQuiz
+            score: state.score, // Simple count for now
+            timePerQuestion: config.timePerQuestion,
+            totalTimeSpent,
+            pointsEarned: 0, // Quiz mode simple scoring
+            answers: state.answers.map(a => {
+              const q = state.questions.find(q => q.id === a.questionId)!;
+              return {
+                questionIndex: state.questions.indexOf(q),
+                word: q.word.targetWord,
+                promptType: 'definition', // Assuming standard quiz uses definition prompt
+                questionFormat: q.format || 'multiple-choice',
+                correctAnswer: q.correctAnswer,
+                selectedAnswer: a.selectedAnswer,
+                isCorrect: a.isCorrect,
+                timeSpent: a.timeSpent
+              };
+            })
+          }));
+        } catch (error) {
+          console.error('Failed to save quiz results:', error);
+        }
+      };
+
+      saveResults();
+    }
+  }, [state.status]);
+
   // Handle answer submission
   const handleAnswer = useCallback((answer: string) => {
     if (state.status !== 'active') return;

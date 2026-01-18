@@ -46,3 +46,23 @@ export function optionalAuthMiddleware(req: AuthRequest, res: Response, next: Ne
 
   next();
 }
+
+/**
+ * Middleware to enforce role-based access.
+ * Must be used AFTER authMiddleware.
+ */
+export function requireRole(allowedRoles: ('student' | 'parent' | 'admin')[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+      return;
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      res.status(403).json({ error: 'Forbidden', message: 'Insufficient permissions' });
+      return;
+    }
+
+    next();
+  };
+}

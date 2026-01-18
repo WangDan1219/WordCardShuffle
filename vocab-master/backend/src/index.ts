@@ -3,10 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { initializeDatabase, closeDatabase } from './config/database.js';
-import { authRoutes, settingsRoutes, statsRoutes, challengesRoutes, migrateRoutes } from './routes/index.js';
+import { authRoutes, settingsRoutes, statsRoutes, challengesRoutes, migrateRoutes, quizResultsRoutes, studyStatsRoutes, adminRoutes } from './routes/index.js';
 import { authService } from './services/authService.js';
 
 const app = express();
+app.set('trust proxy', 1); // Trust first main proxy (likely Nginx/Docker)
 const PORT = process.env.PORT || 9876;
 
 // Initialize database
@@ -52,6 +53,9 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/challenges', challengesRoutes);
 app.use('/api/migrate', migrateRoutes);
+app.use('/api/quiz-results', quizResultsRoutes);
+app.use('/api/study-stats', studyStatsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

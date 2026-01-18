@@ -3,11 +3,13 @@ import { BookOpen, Brain, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { UserMenu } from '../common/UserMenu';
 import { useApp } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useAudio } from '../../hooks/useAudio';
 import { StorageService } from '../../services/StorageService';
 
 export function Dashboard() {
   const { setMode, vocabulary, state } = useApp();
+  const { state: authState } = useAuth();
   const { soundEnabled, toggleSound, playClick } = useAudio();
 
   const hasTodayChallenge = StorageService.hasTodayChallenge();
@@ -52,7 +54,23 @@ export function Dashboard() {
         </div>
 
         {/* User Menu - Fixed at top right for Dashboard */}
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
+          {authState.user?.role === 'parent' && (
+            <button
+              onClick={() => setMode('parent')}
+              className="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              Parent Dashboard
+            </button>
+          )}
+          {authState.user?.role === 'admin' && (
+            <button
+              onClick={() => setMode('admin')}
+              className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+            >
+              Admin Panel
+            </button>
+          )}
           <UserMenu />
         </div>
       </motion.header>

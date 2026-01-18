@@ -7,6 +7,8 @@ import { Dashboard } from './components/dashboard';
 import { StudyMode } from './components/study';
 import { QuizMode } from './components/quiz';
 import { DailyChallenge } from './components/challenge';
+import { ParentDashboard } from './components/parent';
+import { AdminPanel } from './components/admin';
 import { Loader2 } from 'lucide-react';
 
 function AppContent() {
@@ -31,8 +33,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen">
-
-
       <AnimatePresence mode="wait">
         <motion.div
           key={state.currentMode}
@@ -45,6 +45,8 @@ function AppContent() {
           {state.currentMode === 'study' && <StudyMode />}
           {state.currentMode === 'quiz' && <QuizMode />}
           {state.currentMode === 'challenge' && <DailyChallenge />}
+          {state.currentMode === 'parent' && <ParentDashboard />}
+          {state.currentMode === 'admin' && <AdminPanel />}
         </motion.div>
       </AnimatePresence>
     </div>

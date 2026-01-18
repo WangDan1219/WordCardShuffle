@@ -1,5 +1,8 @@
-export { default as authRoutes } from './auth.js';
-export { default as settingsRoutes } from './settings.js';
-export { default as statsRoutes } from './stats.js';
-export { default as challengesRoutes } from './challenges.js';
-export { default as migrateRoutes } from './migrate.js';
+export { default as authRoutes } from './auth';
+export { default as settingsRoutes } from './settings';
+export { default as statsRoutes } from './stats';
+export { default as challengesRoutes } from './challenges';
+export { default as migrateRoutes } from './migrate';
+export { default as quizResultsRoutes } from './quizResults';
+export { default as studyStatsRoutes } from './studyStats';
+export { default as adminRoutes } from './admin';

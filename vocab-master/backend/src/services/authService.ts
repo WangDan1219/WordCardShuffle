@@ -14,6 +14,7 @@ function userRowToUser(row: UserRow): User {
     id: row.id,
     username: row.username,
     displayName: row.display_name,
+    role: row.role,
     createdAt: row.created_at
   };
 }
@@ -39,7 +40,7 @@ export const authService = {
     const user = userRowToUser(userRow);
 
     // Generate tokens
-    const tokens = this.generateTokens(user.id, user.username);
+    const tokens = this.generateTokens(user.id, user.username, user.role);
 
     return { user, tokens };
   },
@@ -60,7 +61,7 @@ export const authService = {
     const user = userRowToUser(userRow);
 
     // Generate tokens
-    const tokens = this.generateTokens(user.id, user.username);
+    const tokens = this.generateTokens(user.id, user.username, user.role);
 
     return { user, tokens };
   },
@@ -98,11 +99,11 @@ export const authService = {
     tokenRepository.deleteByToken(refreshToken);
 
     // Generate new tokens
-    return this.generateTokens(userRow.id, userRow.username);
+    return this.generateTokens(userRow.id, userRow.username, userRow.role);
   },
 
-  generateTokens(userId: number, username: string): TokenPair {
-    const payload: JWTPayload = { userId, username };
+  generateTokens(userId: number, username: string, role: 'student' | 'parent' | 'admin'): TokenPair {
+    const payload: JWTPayload = { userId, username, role };
 
     // Generate access token
     const accessToken = jwt.sign(payload, JWT_SECRET, {

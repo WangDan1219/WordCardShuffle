@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
@@ -22,6 +22,17 @@ export function StudyMode() {
     prevCard,
     resetDeck,
   } = useStudyMode(vocabulary);
+
+  // Study tracking
+  const startTimeRef = useRef(Date.now());
+  const reviewedWordsRef = useRef(new Set<string>());
+
+  // Track reviewed words
+  useEffect(() => {
+    if (currentCard) {
+      reviewedWordsRef.current.add(currentCard.targetWord);
+    }
+  }, [currentCard]);
 
   // Update stats when navigating cards
   useEffect(() => {
@@ -58,10 +69,25 @@ export function StudyMode() {
   const handleReset = () => {
     playClick();
     resetDeck();
+    // Reset tracking for new "session" feel? Or keep accumulating?
+    // Keeping accumulating as long as they are in the mode
   };
 
   const handleBack = () => {
     playClick();
+
+    // Save study session
+    const uniqueWords = reviewedWordsRef.current.size;
+    if (uniqueWords > 0) {
+      import('../../services/ApiService').then(({ default: api }) => {
+        api.saveStudySession({
+          wordsReviewed: uniqueWords,
+          startTime: new Date(startTimeRef.current).toISOString(),
+          endTime: new Date().toISOString()
+        }).catch(err => console.error('Failed to save study session:', err));
+      });
+    }
+
     setMode('dashboard');
   };
 

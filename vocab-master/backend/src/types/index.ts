@@ -6,6 +6,8 @@ export interface UserRow {
   username: string;
   password_hash: string;
   display_name: string | null;
+  role: 'student' | 'parent' | 'admin';
+  parent_id: number | null;
   created_at: string;
 }
 
@@ -40,11 +42,53 @@ export interface RefreshTokenRow {
   created_at: string;
 }
 
+export interface QuizResultRow {
+  id: number;
+  user_id: number;
+  quiz_type: 'quiz' | 'challenge';
+  total_questions: number;
+  correct_answers: number;
+  score: number;
+  time_per_question: number | null;
+  total_time_spent: number;
+  points_earned: number;
+  completed_at: string;
+}
+
+export interface QuizAnswerRow {
+  id: number;
+  quiz_result_id: number;
+  question_index: number;
+  word: string;
+  prompt_type: string;
+  question_format: string;
+  correct_answer: string;
+  selected_answer: string | null;
+  is_correct: number;
+  time_spent: number;
+}
+
+export interface StudySessionRow {
+  id: number;
+  user_id: number;
+  words_reviewed: number;
+  start_time: string;
+  end_time: string;
+  created_at: string;
+}
+
+export interface AdminSettingsRow {
+  id: number;
+  password_hash: string;
+  created_at: string;
+}
+
 // API response types
 export interface User {
   id: number;
   username: string;
   displayName: string | null;
+  role: 'student' | 'parent' | 'admin';
   createdAt: string;
 }
 
@@ -73,6 +117,7 @@ export interface DailyChallenge {
 export interface JWTPayload {
   userId: number;
   username: string;
+  role: 'student' | 'parent' | 'admin';
 }
 
 export interface AuthRequest extends Request {

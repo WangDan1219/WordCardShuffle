@@ -175,6 +175,34 @@ export function DailyChallenge() {
           },
         });
 
+        // Save to backend
+        import('../../services/ApiService').then(({ default: api }) => {
+          const totalTimeSpent = prev.answers.reduce((acc, curr) => acc + curr.timeSpent, 0);
+
+          api.saveQuizResult({
+            quizType: 'challenge',
+            totalQuestions: prev.totalQuestions,
+            correctAnswers: prev.score,
+            score: prev.pointsEarned,
+            timePerQuestion: prev.timePerQuestion,
+            totalTimeSpent,
+            pointsEarned: prev.pointsEarned,
+            answers: prev.answers.map(a => {
+              const q = prev.questions.find(q => q.id === a.questionId)!;
+              return {
+                questionIndex: prev.questions.indexOf(q),
+                word: q.word.targetWord,
+                promptType: 'mixed',
+                questionFormat: q.format || 'multiple-choice',
+                correctAnswer: q.correctAnswer,
+                selectedAnswer: a.selectedAnswer,
+                isCorrect: a.isCorrect,
+                timeSpent: a.timeSpent
+              };
+            })
+          }).catch(err => console.error('Failed to save challenge results:', err));
+        });
+
         return { ...prev, status: 'complete', todayCompleted: true };
       }
       return {

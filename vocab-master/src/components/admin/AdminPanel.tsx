@@ -1,0 +1,148 @@
+import { useState, useEffect } from 'react';
+
+import { Shield, Plus, Edit, Trash2, LogOut } from 'lucide-react';
+import { Button } from '../common';
+import { ApiService, type AdminUserStats } from '../../services/ApiService';
+import { useApp } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { EditUserModal } from './EditUserModal';
+
+export function AdminPanel() {
+    const { setMode } = useApp();
+    const { logout } = useAuth();
+    const [users, setUsers] = useState<AdminUserStats[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [editingUser, setEditingUser] = useState<AdminUserStats | null>(null);
+
+    useEffect(() => {
+        loadUsers();
+    }, []);
+
+    const loadUsers = async () => {
+        setLoading(true);
+        try {
+            const data = await ApiService.getAdminUsers();
+            setUsers(data);
+        } catch (err) {
+            console.error('Failed to load users', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await logout();
+    };
+
+    const handleBack = () => {
+        setMode('dashboard');
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Shield className="w-6 h-6 text-indigo-600" />
+                        <h1 className="text-xl font-bold text-gray-900">System Administration</h1>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" onClick={handleLogout} className="text-sm">
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Log Out
+                        </Button>
+                        <Button variant="outline" onClick={handleBack}>
+                            Exit to App
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+                        <p className="text-gray-500">Manage students, parents, and system administrators.</p>
+                    </div>
+                    <Button variant="primary">
+                        <Plus className="w-4 h-4 mr-2" />
+                        New User
+                    </Button>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stats</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {users.map((user) => (
+                                    <tr key={user.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                                                    {user.display_name?.[0]?.toUpperCase() || user.username[0].toUpperCase()}
+                                                </div>
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-gray-900">{user.display_name || user.username}</div>
+                                                    <div className="text-sm text-gray-500">@{user.username}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800' :
+                                                    user.role === 'parent' ? 'bg-purple-100 text-purple-800' :
+                                                        'bg-green-100 text-green-800'}`}>
+                                                {user.role}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-900">{user.total_words_studied} words</div>
+                                            <div className="text-sm text-gray-500">{user.quizzes_taken} quizzes</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {user.last_study_date ? new Date(user.last_study_date).toLocaleDateString() : 'Never'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => setEditingUser(user)}
+                                                className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
+                                            <button className="text-red-600 hover:text-red-900">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </main>
+
+            {/* Edit Modal */}
+            {editingUser && (
+                <EditUserModal
+                    user={editingUser}
+                    allUsers={users}
+                    onClose={() => setEditingUser(null)}
+                    onSave={loadUsers}
+                />
+            )}
+        </div>
+    );
+}
