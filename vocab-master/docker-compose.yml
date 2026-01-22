@@ -49,7 +49,7 @@ services:
       - "8090:8080"
     volumes:
       - vocab-data:/data
-    command: /data/vocab-master.db
+    command: sqlite_web -H 0.0.0.0 -p 8080 /data/vocab-master.db
     restart: unless-stopped
     networks:
       - vocab-network
