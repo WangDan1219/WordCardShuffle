@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { db } from '../config/database';
-import { requireRole } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
 
-// Middleware: All admin routes require 'admin' role
+// Middleware: All admin routes require authentication and 'admin' role
+router.use(authMiddleware);
 router.use(requireRole(['admin']));
 
 // Get all users with stats

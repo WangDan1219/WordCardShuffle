@@ -35,20 +35,20 @@ export function UserMenu() {
     <div className="relative z-50" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-lg hover:bg-slate-700/80 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-primary-200 rounded-xl shadow-clay-sm hover:shadow-clay transition-all duration-200 cursor-pointer"
       >
-        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center shadow-sm">
           <User size={16} className="text-white" />
         </div>
-        <span className="text-white text-sm font-medium max-w-[120px] truncate hidden sm:block">
+        <span className="text-primary-800 text-sm font-bold max-w-[100px] truncate hidden sm:block">
           {displayName}
         </span>
         {appState.isSyncing ? (
-          <Cloud size={16} className="text-indigo-400 animate-pulse" />
+          <Cloud size={16} className="text-primary-500 animate-pulse" />
         ) : (
           <ChevronDown
             size={16}
-            className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`text-primary-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           />
         )}
       </button>
@@ -60,25 +60,25 @@ export function UserMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden"
+            className="absolute right-0 mt-2 w-56 bg-white border-2 border-primary-100 rounded-xl shadow-clay overflow-hidden"
           >
             {/* User info */}
-            <div className="px-4 py-3 border-b border-slate-700">
-              <p className="text-white font-medium truncate">{displayName}</p>
-              <p className="text-gray-400 text-sm truncate">@{authState.user.username}</p>
+            <div className="px-4 py-3 border-b border-primary-100 bg-primary-50/50">
+              <p className="text-primary-900 font-bold truncate">{displayName}</p>
+              <p className="text-primary-600 text-sm truncate">@{authState.user.username}</p>
             </div>
 
             {/* Sync status */}
-            <div className="px-4 py-2 border-b border-slate-700 flex items-center gap-2">
+            <div className="px-4 py-2 border-b border-primary-100 flex items-center gap-2">
               {appState.isSyncing ? (
                 <>
-                  <Cloud size={16} className="text-indigo-400 animate-pulse" />
-                  <span className="text-sm text-indigo-400">Syncing...</span>
+                  <Cloud size={16} className="text-primary-500 animate-pulse" />
+                  <span className="text-sm text-primary-600 font-medium">Syncing...</span>
                 </>
               ) : (
                 <>
-                  <Cloud size={16} className="text-green-400" />
-                  <span className="text-sm text-green-400">Synced</span>
+                  <Cloud size={16} className="text-study" />
+                  <span className="text-sm text-study font-medium">Synced</span>
                 </>
               )}
             </div>
@@ -87,7 +87,7 @@ export function UserMenu() {
             <div className="py-1">
               <button
                 onClick={handleLogout}
-                className="w-full px-4 py-2 text-left text-red-400 hover:bg-slate-700/50 flex items-center gap-2 transition-colors"
+                className="w-full px-4 py-2.5 text-left text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors cursor-pointer font-semibold"
                 disabled={appState.isSyncing}
               >
                 <LogOut size={16} />

@@ -25,7 +25,7 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4 background-pattern">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,50 +33,61 @@ export function AuthPage() {
       >
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl mb-4">
-            <BookOpen size={32} className="text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            11+ Vocabulary Master
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-3xl mb-4 shadow-xl rotate-3"
+          >
+            <BookOpen size={40} className="text-indigo-600 drop-shadow-sm" strokeWidth={2.5} />
+          </motion.div>
+          <h1 className="text-3xl font-black text-white mb-2 drop-shadow-md tracking-tight">
+            Vocabulary Master
           </h1>
-          <p className="text-gray-400">
+          <p className="text-indigo-100 font-medium text-lg">
             {mode === 'login'
-              ? 'Welcome back! Sign in to continue learning.'
-              : 'Create an account to track your progress.'}
+              ? 'Welcome back, superstar! 🌟'
+              : 'Join the fun! 🚀'}
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-xl">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              initial={{ opacity: 0, x: mode === 'login' ? -20 : 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: mode === 'login' ? 20 : -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {mode === 'login' ? (
-                <LoginForm
-                  onSubmit={handleLogin}
-                  onSwitchToRegister={() => switchMode('register')}
-                  isLoading={state.isLoading}
-                  error={state.error}
-                />
-              ) : (
-                <RegisterForm
-                  onSubmit={handleRegister}
-                  onSwitchToLogin={() => switchMode('login')}
-                  isLoading={state.isLoading}
-                  error={state.error}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+        <div className="bg-white/95 backdrop-blur-xl border-2 border-white/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          {/* Decorative blobs */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+
+          <div className="relative z-10">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, x: mode === 'login' ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: mode === 'login' ? 20 : -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {mode === 'login' ? (
+                  <LoginForm
+                    onSubmit={handleLogin}
+                    onSwitchToRegister={() => switchMode('register')}
+                    isLoading={state.isLoading}
+                    error={state.error}
+                  />
+                ) : (
+                  <RegisterForm
+                    onSubmit={handleRegister}
+                    onSwitchToLogin={() => switchMode('login')}
+                    isLoading={state.isLoading}
+                    error={state.error}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-500 text-sm mt-6">
+        <p className="text-center text-indigo-100 text-sm mt-8 font-medium opacity-80">
           Your progress is saved automatically and synced across devices.
         </p>
       </motion.div>

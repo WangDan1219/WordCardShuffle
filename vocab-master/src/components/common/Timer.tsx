@@ -62,9 +62,10 @@ export function Timer({
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
+      {/* Progress bar - hidden on mobile to save space */}
       {(variant === 'bar' || variant === 'both') && (
-        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="hidden sm:block w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
           <motion.div
             className={`h-full ${getColor()} rounded-full`}
             initial={{ width: '100%' }}
@@ -76,7 +77,7 @@ export function Timer({
 
       {(variant === 'text' || variant === 'both') && (
         <motion.span
-          className={`font-bold text-lg min-w-[3rem] text-center ${getTextColor()}`}
+          className={`font-bold text-base sm:text-lg min-w-[2.5rem] text-center ${getTextColor()}`}
           animate={timeRemaining <= warningThreshold ? { scale: [1, 1.1, 1] } : {}}
           transition={{ duration: 0.5, repeat: timeRemaining <= warningThreshold ? Infinity : 0 }}
         >

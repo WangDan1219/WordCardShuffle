@@ -60,11 +60,11 @@ export function QuestionCard({
       className="w-full"
     >
       {/* Prompt */}
-      <div className="bg-white rounded-2xl shadow-card p-6 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+      <div className="bg-white rounded-clay border-2 border-primary-100 shadow-clay p-5 mb-5">
+        <p className="text-xs font-bold text-primary-500 uppercase tracking-wider mb-2">
           {question.promptType === 'synonym' ? 'Synonym' : 'Definition'}
         </p>
-        <p className="text-lg sm:text-xl text-gray-800 font-medium">
+        <p className="text-lg sm:text-xl text-primary-900 font-semibold leading-relaxed">
           {question.prompt}
         </p>
       </div>

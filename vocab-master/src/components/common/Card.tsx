@@ -33,10 +33,10 @@ export function Card({
   return (
     <motion.div
       className={`
-        rounded-2xl
+        rounded-3xl
         ${variantStyles[variant]}
         ${paddingStyles[padding]}
-        ${hover ? 'hover:shadow-card-hover transition-shadow duration-200' : ''}
+        ${hover ? 'hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300' : ''}
         ${className}
       `}
       {...props}
