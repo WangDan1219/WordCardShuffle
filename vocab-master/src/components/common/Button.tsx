@@ -50,6 +50,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={{ scale: disabled ? 1 : 0.95, y: disabled ? 0 : 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 15 }}
         className={`
+          inline-flex items-center justify-center gap-2
+          whitespace-nowrap
           rounded-full cursor-pointer
           transition-all duration-200
           focus:outline-none focus:ring-4 focus:ring-offset-2

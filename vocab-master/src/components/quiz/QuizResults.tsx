@@ -95,16 +95,12 @@ export function QuizResults({ state, onRestart, onHome }: QuizResultsProps) {
         {/* Actions */}
         <div className="space-y-3">
           <Button variant="quiz" fullWidth onClick={onRestart}>
-            <span className="flex items-center justify-center gap-2">
-              <RotateCcw className="w-5 h-5" />
-              Try Again
-            </span>
+            <RotateCcw className="w-5 h-5" />
+            Try Again
           </Button>
           <Button variant="ghost" fullWidth onClick={onHome}>
-            <span className="flex items-center justify-center gap-2">
-              <Home className="w-5 h-5" />
-              Back to Home
-            </span>
+            <Home className="w-5 h-5" />
+            Back to Home
           </Button>
         </div>
       </Card>

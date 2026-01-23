@@ -52,7 +52,7 @@ export function ParentDashboard() {
                     </div>
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" onClick={handleLogout} className="text-sm">
-                            <LogOut className="w-4 h-4 mr-2" />
+                            <LogOut className="w-4 h-4" />
                             Log Out
                         </Button>
                         <Button variant="outline" onClick={handleBack}>

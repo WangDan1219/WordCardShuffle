@@ -131,10 +131,8 @@ export function TypeQuestion({
             fullWidth
             disabled={!inputValue.trim() || disabled}
           >
-            <span className="flex items-center justify-center gap-2">
-              <Send className="w-5 h-5" />
-              Submit Answer
-            </span>
+            <Send className="w-5 h-5" />
+            Submit Answer
           </Button>
         )}
       </form>

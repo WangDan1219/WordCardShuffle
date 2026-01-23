@@ -13,6 +13,7 @@ export function Dashboard() {
   const { soundEnabled, toggleSound, playClick } = useAudio();
 
   const hasTodayChallenge = StorageService.hasTodayChallenge();
+  const userRole = authState.user?.role || 'student';
 
   const handleModeSelect = (mode: 'study' | 'quiz' | 'challenge') => {
     playClick();
@@ -48,7 +49,7 @@ export function Dashboard() {
               <button
                 onClick={toggleSound}
                 className={`
-                  p-3 rounded-fullcursor-pointer
+                  p-3 rounded-full cursor-pointer
                   bg-white border-2 border-primary-100
                   text-primary-500 hover:text-primary-700 hover:border-primary-300
                   hover:bg-primary-50
@@ -68,28 +69,6 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-
-        {/* User Menu - Extra Actions if needed */}
-        {(authState.user?.role === 'parent' || authState.user?.role === 'admin') && (
-          <div className="max-w-xl mx-auto px-4 pb-3 flex gap-2">
-            {authState.user?.role === 'parent' && (
-              <button
-                onClick={() => setMode('parent')}
-                className="px-4 py-1.5 text-xs font-bold text-purple-700 bg-purple-100 rounded-full hover:bg-purple-200 transition-colors"
-              >
-                Parent Dashboard
-              </button>
-            )}
-            {authState.user?.role === 'admin' && (
-              <button
-                onClick={() => setMode('admin')}
-                className="px-4 py-1.5 text-xs font-bold text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors"
-              >
-                Admin Panel
-              </button>
-            )}
-          </div>
-        )}
       </motion.header>
 
       {/* Main content */}
@@ -106,83 +85,112 @@ export function Dashboard() {
               <h2 className="text-2xl font-black text-primary-900 mb-1">
                 Hi, {authState.user?.displayName || authState.user?.username}! 👋
               </h2>
-              <p className="text-primary-600 font-medium">Ready to learn some new words?</p>
+              {userRole === 'student' ? (
+                <p className="text-primary-600 font-medium">Ready to learn some new words?</p>
+              ) : (
+                <p className="text-primary-600 font-medium">Welcome to your dashboard.</p>
+              )}
             </div>
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary-100 rounded-full opacity-50 blur-xl"></div>
           </div>
 
-          {/* Study Mode */}
-          <ModeCard
-            title="Study Mode"
-            description="Flip cards & learn"
-            icon={BookOpen}
-            color="study"
-            onClick={() => handleModeSelect('study')}
-          />
+          {/* Role-based Content */}
+          {userRole === 'admin' ? (
+            <ModeCard
+              title="Admin Panel"
+              description="Manage users and system settings"
+              icon={Brain} // Using Brain mostly for placeholder, effectively replaces "AdminDashboard"
+              color="quiz" // Re-using Quiz color style (Amber) for Admin
+              onClick={() => setMode('admin')}
+            />
+          ) : userRole === 'parent' ? (
+            <ModeCard
+              title="Parent Dashboard"
+              description="View your children's progress"
+              icon={Trophy} // Re-using Trophy
+              color="challenge" // Re-using Challenge color style (Red/Rose)
+              onClick={() => setMode('parent')}
+            />
+          ) : (
+            // Student Content
+            <>
+              {/* Study Mode */}
+              <ModeCard
+                title="Study Mode"
+                description="Flip cards & learn"
+                icon={BookOpen}
+                color="study"
+                onClick={() => handleModeSelect('study')}
+              />
 
-          {/* Quiz Mode */}
-          <ModeCard
-            title="Quiz Mode"
-            description="Test your knowledge"
-            icon={Brain}
-            color="quiz"
-            onClick={() => handleModeSelect('quiz')}
-          />
+              {/* Quiz Mode */}
+              <ModeCard
+                title="Quiz Mode"
+                description="Test your knowledge"
+                icon={Brain}
+                color="quiz"
+                onClick={() => handleModeSelect('quiz')}
+              />
 
-          {/* Daily Challenge */}
-          <ModeCard
-            title="Daily Challenge"
-            description="Beat the clock!"
-            icon={Trophy}
-            color="challenge"
-            onClick={() => handleModeSelect('challenge')}
-            badge={hasTodayChallenge ? 'Done!' : 'New!'}
-          />
+              {/* Daily Challenge */}
+              <ModeCard
+                title="Daily Challenge"
+                description="Beat the clock!"
+                icon={Trophy}
+                color="challenge"
+                onClick={() => handleModeSelect('challenge')}
+                badge={hasTodayChallenge ? 'Done!' : 'New!'}
+              />
+            </>
+          )}
+
         </motion.div>
 
-        {/* Stats summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 p-6 bg-white rounded-3xl border-2 border-primary-100/50 shadow-xl shadow-primary-100/50"
-        >
-          <h2 className="text-sm font-black text-primary-400 uppercase tracking-widest mb-4 text-center">
-            Your Super Stats
-          </h2>
-          <div className="grid grid-cols-3 gap-4">
-            {/* Words Studied */}
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-2xl bg-study-light flex items-center justify-center mb-2 text-study-dark">
-                <BookOpen size={20} strokeWidth={3} />
+        {/* Stats summary - Only for Students */}
+        {userRole === 'student' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 p-6 bg-white rounded-3xl border-2 border-primary-100/50 shadow-xl shadow-primary-100/50"
+          >
+            <h2 className="text-sm font-black text-primary-400 uppercase tracking-widest mb-4 text-center">
+              Your Super Stats
+            </h2>
+            <div className="grid grid-cols-3 gap-4">
+              {/* Words Studied */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-2xl bg-study-light flex items-center justify-center mb-2 text-study-dark">
+                  <BookOpen size={20} strokeWidth={3} />
+                </div>
+                <p className="text-2xl font-black text-gray-800">
+                  {state.stats.totalWordsStudied}
+                </p>
+                <p className="text-xs text-gray-500 font-bold">Studied</p>
               </div>
-              <p className="text-2xl font-black text-gray-800">
-                {state.stats.totalWordsStudied}
-              </p>
-              <p className="text-xs text-gray-500 font-bold">Studied</p>
-            </div>
-            {/* Quizzes Taken */}
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-2xl bg-quiz-light flex items-center justify-center mb-2 text-quiz-dark">
-                <Brain size={20} strokeWidth={3} />
+              {/* Quizzes Taken */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-2xl bg-quiz-light flex items-center justify-center mb-2 text-quiz-dark">
+                  <Brain size={20} strokeWidth={3} />
+                </div>
+                <p className="text-2xl font-black text-gray-800">
+                  {state.stats.quizzesTaken}
+                </p>
+                <p className="text-xs text-gray-500 font-bold">Quizzes</p>
               </div>
-              <p className="text-2xl font-black text-gray-800">
-                {state.stats.quizzesTaken}
-              </p>
-              <p className="text-xs text-gray-500 font-bold">Quizzes</p>
-            </div>
-            {/* Best Score */}
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-2xl bg-challenge-light flex items-center justify-center mb-2 text-challenge-dark">
-                <Trophy size={20} strokeWidth={3} />
+              {/* Best Score */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 rounded-2xl bg-challenge-light flex items-center justify-center mb-2 text-challenge-dark">
+                  <Trophy size={20} strokeWidth={3} />
+                </div>
+                <p className="text-2xl font-black text-gray-800">
+                  {state.stats.bestChallengeScore}
+                </p>
+                <p className="text-xs text-gray-500 font-bold">Best Score</p>
               </div>
-              <p className="text-2xl font-black text-gray-800">
-                {state.stats.bestChallengeScore}
-              </p>
-              <p className="text-xs text-gray-500 font-bold">Best Score</p>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </main>
     </div>
   );

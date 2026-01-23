@@ -50,7 +50,7 @@ export function AdminPanel() {
                     </div>
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" onClick={handleLogout} className="text-sm">
-                            <LogOut className="w-4 h-4 mr-2" />
+                            <LogOut className="w-4 h-4" />
                             Log Out
                         </Button>
                         <Button variant="outline" onClick={handleBack}>
@@ -67,7 +67,7 @@ export function AdminPanel() {
                         <p className="text-gray-500">Manage students, parents, and system administrators.</p>
                     </div>
                     <Button variant="primary" onClick={() => setShowAddUser(true)}>
-                        <Plus className="w-4 h-4 mr-2" />
+                        <Plus className="w-4 h-4" />
                         New User
                     </Button>
                 </div>

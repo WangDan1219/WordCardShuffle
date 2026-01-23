@@ -151,10 +151,8 @@ export function ChallengeResults({ state, onHome }: ChallengeResultsProps) {
           transition={{ delay: 0.8 }}
         >
           <Button variant="challenge" fullWidth onClick={onHome}>
-            <span className="flex items-center justify-center gap-2">
-              <Home className="w-5 h-5" />
-              Back to Home
-            </span>
+            <Home className="w-5 h-5" />
+            Back to Home
           </Button>
           <p className="text-center text-xs text-gray-400 mt-3">
             Come back tomorrow for a new challenge!

@@ -269,10 +269,8 @@ export function DailyChallenge() {
               </div>
             ) : (
               <Button variant="challenge" size="xl" fullWidth onClick={startChallenge}>
-                <span className="flex items-center justify-center gap-2">
-                  <Flame className="w-5 h-5" />
-                  Start Challenge
-                </span>
+                <Flame className="w-5 h-5" />
+                Start Challenge
               </Button>
             )}
 

@@ -114,10 +114,8 @@ export function QuizSetup({ onStart, maxQuestions }: QuizSetupProps) {
           fullWidth
           onClick={handleStart}
         >
-          <span className="flex items-center justify-center gap-2">
-            <Play className="w-5 h-5" />
-            Start Quiz
-          </span>
+          <Play className="w-5 h-5" />
+          Start Quiz
         </Button>
       </Card>
     </motion.div>
