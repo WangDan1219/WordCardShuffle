@@ -394,6 +394,13 @@ class ApiServiceClass {
     });
   }
 
+  async createUser(data: { username: string; password: string; role: string; parentId: number | null }): Promise<void> {
+    return this.fetchWithAuth<void>('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     const response = await fetch(`${API_BASE_URL}/health`);

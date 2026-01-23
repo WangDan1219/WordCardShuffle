@@ -6,6 +6,7 @@ import { ApiService, type AdminUserStats } from '../../services/ApiService';
 import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from './EditUserModal';
+import { AddUserModal } from './AddUserModal';
 
 export function AdminPanel() {
     const { setMode } = useApp();
@@ -13,6 +14,7 @@ export function AdminPanel() {
     const [users, setUsers] = useState<AdminUserStats[]>([]);
     const [loading, setLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<AdminUserStats | null>(null);
+    const [showAddUser, setShowAddUser] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -64,7 +66,7 @@ export function AdminPanel() {
                         <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
                         <p className="text-gray-500">Manage students, parents, and system administrators.</p>
                     </div>
-                    <Button variant="primary">
+                    <Button variant="primary" onClick={() => setShowAddUser(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         New User
                     </Button>
@@ -140,6 +142,15 @@ export function AdminPanel() {
                     user={editingUser}
                     allUsers={users}
                     onClose={() => setEditingUser(null)}
+                    onSave={loadUsers}
+                />
+            )}
+
+            {/* Add User Modal */}
+            {showAddUser && (
+                <AddUserModal
+                    allUsers={users}
+                    onClose={() => setShowAddUser(false)}
                     onSave={loadUsers}
                 />
             )}

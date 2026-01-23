@@ -1,3 +1,10 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from parent directory if available
+dotenv.config({ path: path.join(process.cwd(), '../.env') });
+// Also try loading from current directory (will not overwrite existing keys)
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

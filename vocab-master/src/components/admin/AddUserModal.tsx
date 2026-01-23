@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { X, Save, Shield, User, GraduationCap } from 'lucide-react';
+import { Button } from '../common';
+import { ApiService, type AdminUserStats } from '../../services/ApiService';
+
+interface AddUserModalProps {
+    allUsers: AdminUserStats[];
+    onClose: () => void;
+    onSave: () => void;
+}
+
+export function AddUserModal({ allUsers, onClose, onSave }: AddUserModalProps) {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [role, setRole] = useState<'student' | 'parent' | 'admin'>('student');
+    const [parentId, setParentId] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const parents = allUsers.filter(u => u.role === 'parent');
+
+    const handleSave = async () => {
+        if (!username || !password) {
+            setError('Username and password are required');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        try {
+            await ApiService.createUser({ username, password, role, parentId });
+            onSave();
+            onClose();
+        } catch (err: any) {
+            console.error('Failed to create user', err);
+            setError(err.message || 'Failed to create user');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+            >
+                <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                    <h2 className="text-xl font-bold text-gray-900">Add New User</h2>
+                    <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    {error && (
+                        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Enter username"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Enter password"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {(['student', 'parent', 'admin'] as const).map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => {
+                                        setRole(r);
+                                        if (r !== 'student') setParentId(null);
+                                    }}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium flex flex-col items-center gap-1 border transition-colors ${role === r
+                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-700 ring-1 ring-indigo-200'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {r === 'admin' && <Shield className="w-4 h-4" />}
+                                    {r === 'parent' && <User className="w-4 h-4" />}
+                                    {r === 'student' && <GraduationCap className="w-4 h-4" />}
+                                    <span className="capitalize">{r}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {role === 'student' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Parent</label>
+                            <select
+                                value={parentId || ''}
+                                onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            >
+                                <option value="">-- No Parent Assigned --</option>
+                                {parents.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.display_name || p.username}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="text-xs text-gray-500 mt-1">Assigning a parent allows them to view this student's progress.</p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-6 bg-gray-50 flex justify-end gap-3">
+                    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                    <Button variant="primary" onClick={handleSave} disabled={loading}>
+                        {loading ? 'Creating...' : 'Create User'}
+                        {!loading && <Save className="w-4 h-4 ml-2" />}
+                    </Button>
+                </div>
+            </motion.div>
+        </div>
+    );
+}

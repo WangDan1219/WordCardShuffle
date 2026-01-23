@@ -1,25 +1,38 @@
 import { Router } from 'express';
 import { db } from '../config/database';
+import bcrypt from 'bcryptjs';
 import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
 
-// Middleware: All admin routes require authentication and 'admin' role
+// Middleware: All admin routes require authentication
 router.use(authMiddleware);
-router.use(requireRole(['admin']));
 
-// Get all users with stats
-router.get('/users', (req, res) => {
+// Routes accessible by Admin and Parent
+// GET users with stats
+router.get('/users', requireRole(['admin', 'parent']), (req: any, res) => {
     try {
-        const users = db.prepare(`
+        const user = req.user;
+        let query = `
       SELECT 
         u.id, u.username, u.display_name, u.role, u.parent_id, u.created_at,
         us.quizzes_taken, us.total_words_studied, us.last_study_date,
         (SELECT AVG(score) FROM quiz_results WHERE user_id = u.id) as avg_score
       FROM users u
       LEFT JOIN user_stats us ON u.id = us.user_id
-      ORDER BY u.created_at DESC
-    `).all();
+    `;
+
+        let params: any[] = [];
+
+        // If parent, only show their children
+        if (user.role === 'parent') {
+            query += ' WHERE u.parent_id = ?';
+            params.push(user.userId);
+        }
+
+        query += ' ORDER BY u.created_at DESC';
+
+        const users = db.prepare(query).all(...params);
         res.json(users);
     } catch (error) {
         console.error('Fetch users error:', error);
@@ -28,9 +41,20 @@ router.get('/users', (req, res) => {
 });
 
 // Get detailed user stats
-router.get('/users/:id/details', (req, res) => {
+router.get('/users/:id/details', requireRole(['admin', 'parent']), (req: any, res) => {
     try {
-        const userId = req.params.id;
+        const userId = Number(req.params.id);
+        const requestUser = req.user;
+
+        // If parent, verify they are requesting their own child
+        if (requestUser.role === 'parent') {
+            const targetUser = db.prepare('SELECT parent_id FROM users WHERE id = ?').get(userId) as { parent_id: number };
+
+            if (!targetUser || targetUser.parent_id !== requestUser.userId) {
+                res.status(403).json({ error: 'Forbidden', message: 'You can only view your own students' });
+                return;
+            }
+        }
 
         // Quiz History
         const quizHistory = db.prepare(`
@@ -116,6 +140,56 @@ router.patch('/users/:id/parent', (req, res) => {
     } catch (error) {
         console.error('Update parent link error:', error);
         res.status(500).json({ error: 'Failed to update parent link' });
+    }
+});
+
+// Create New User
+router.post('/users', async (req, res) => {
+    try {
+        const { username, password, role, parentId } = req.body;
+
+        if (!username || !password || !role) {
+            res.status(400).json({ error: 'Missing required fields' });
+            return;
+        }
+
+        if (!['student', 'parent', 'admin'].includes(role)) {
+            res.status(400).json({ error: 'Invalid role' });
+            return;
+        }
+
+        // Check availability
+        const existing = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+        if (existing) {
+            res.status(409).json({ error: 'Username already taken' });
+            return;
+        }
+
+        const hash = bcrypt.hashSync(password, 12);
+
+        const result = db.transaction(() => {
+            // Insert user
+            const insert = db.prepare(`
+                INSERT INTO users (username, password_hash, display_name, role, parent_id)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+            const info = insert.run(username, hash, username, role, parentId || null);
+            const newId = info.lastInsertRowid;
+
+            // Initialize stats
+            db.prepare('INSERT INTO user_stats (user_id) VALUES (?)').run(newId);
+
+            // Initialize settings
+            db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(newId);
+
+            return newId;
+        })();
+
+        res.status(201).json({ success: true, userId: result, message: 'User created' });
+
+    } catch (error) {
+        console.error('Create user error:', error);
+        res.status(500).json({ error: 'Failed to create user' });
     }
 });
 
