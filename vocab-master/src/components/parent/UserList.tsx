@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Trophy, Clock } from 'lucide-react';
+import { BookOpen, Trophy, Clock, Flame, Calendar } from 'lucide-react';
 import type { AdminUserStats } from '../../services/ApiService';
 
 interface UserListProps {
@@ -39,13 +39,21 @@ export function UserList({ users, onSelectUser }: UserListProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <div className="flex flex-col gap-1">
                             <span className="text-xs text-gray-400 flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" /> Studied
+                                <Flame className="w-3 h-3" /> Streak
                             </span>
-                            <span className="font-semibold text-gray-700">
-                                {user.total_words_studied} words
+                            <span className={`font-semibold ${user.current_streak > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                                {user.current_streak > 0 ? `${user.current_streak} day${user.current_streak > 1 ? 's' : ''}` : '-'}
+                            </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Calendar className="w-3 h-3" /> This Week
+                            </span>
+                            <span className={`font-semibold ${user.sessions_this_week > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                                {user.sessions_this_week > 0 ? `${user.sessions_this_week} session${user.sessions_this_week > 1 ? 's' : ''}` : '-'}
                             </span>
                         </div>
                         <div className="flex flex-col gap-1">
@@ -54,6 +62,14 @@ export function UserList({ users, onSelectUser }: UserListProps) {
                             </span>
                             <span className="font-semibold text-gray-700">
                                 {user.avg_accuracy ? `${Math.round(user.avg_accuracy)}%` : '-'}
+                            </span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" /> Studied
+                            </span>
+                            <span className="font-semibold text-gray-700">
+                                {user.total_words_studied} words
                             </span>
                         </div>
                         <div className="col-span-2 flex flex-col gap-1 mt-1 pt-3 border-t border-gray-50">

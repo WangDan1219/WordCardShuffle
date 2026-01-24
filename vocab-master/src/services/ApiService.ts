@@ -105,6 +105,8 @@ export interface AdminUserStats {
   total_words_studied: number;
   last_study_date: string | null;
   avg_accuracy: number | null;
+  current_streak: number;
+  sessions_this_week: number;
 }
 
 export interface AdminUserDetails {

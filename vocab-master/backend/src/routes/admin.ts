@@ -9,6 +9,68 @@ const router = Router();
 router.use(authMiddleware);
 
 // Routes accessible by Admin and Parent
+// Helper function to calculate streak for a user
+function calculateStreak(userId: number): number {
+    // Get all unique activity dates (from study sessions and quiz results)
+    const activityDates = db.prepare(`
+        SELECT DISTINCT date(start_time) as activity_date FROM study_sessions WHERE user_id = ?
+        UNION
+        SELECT DISTINCT date(completed_at) as activity_date FROM quiz_results WHERE user_id = ?
+        ORDER BY activity_date DESC
+    `).all(userId, userId) as { activity_date: string }[];
+
+    if (activityDates.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Check if there's activity today or yesterday (streak is still active)
+    const mostRecentDate = new Date(activityDates[0].activity_date);
+    const diffFromToday = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // If no activity today or yesterday, streak is broken
+    if (diffFromToday > 1) return 0;
+
+    // Count consecutive days
+    let expectedDate = mostRecentDate;
+    for (const { activity_date } of activityDates) {
+        const currentDate = new Date(activity_date);
+        const diff = Math.floor((expectedDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diff === 0) {
+            streak++;
+            expectedDate = new Date(currentDate);
+            expectedDate.setDate(expectedDate.getDate() - 1);
+        } else if (diff === 1) {
+            // Same as expected, continue
+            streak++;
+            expectedDate = new Date(currentDate);
+            expectedDate.setDate(expectedDate.getDate() - 1);
+        } else {
+            // Gap in dates, streak ends
+            break;
+        }
+    }
+
+    return streak;
+}
+
+// Helper function to get sessions this week
+function getSessionsThisWeek(userId: number): number {
+    const result = db.prepare(`
+        SELECT COUNT(*) as count FROM (
+            SELECT id FROM study_sessions
+            WHERE user_id = ? AND date(start_time) >= date('now', 'weekday 0', '-7 days')
+            UNION ALL
+            SELECT id FROM quiz_results
+            WHERE user_id = ? AND date(completed_at) >= date('now', 'weekday 0', '-7 days')
+        )
+    `).get(userId, userId) as { count: number };
+
+    return result?.count || 0;
+}
+
 // GET users with stats
 router.get('/users', requireRole(['admin', 'parent']), (req: any, res) => {
     try {
@@ -33,8 +95,16 @@ router.get('/users', requireRole(['admin', 'parent']), (req: any, res) => {
 
         query += ' ORDER BY u.created_at DESC';
 
-        const users = db.prepare(query).all(...params);
-        res.json(users);
+        const users = db.prepare(query).all(...params) as any[];
+
+        // Add streak and weekly stats for each user
+        const usersWithStats = users.map(u => ({
+            ...u,
+            current_streak: calculateStreak(u.id),
+            sessions_this_week: getSessionsThisWeek(u.id)
+        }));
+
+        res.json(usersWithStats);
     } catch (error) {
         console.error('Fetch users error:', error);
         res.status(500).json({ error: 'Failed to fetch users' });

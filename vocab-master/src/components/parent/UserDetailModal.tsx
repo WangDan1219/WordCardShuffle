@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { X, Calendar, Activity, BookOpen, Clock } from 'lucide-react';
+import { X, Calendar, Activity, BookOpen, Clock, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Button, Card } from '../common';
 import { TrendChart } from './TrendChart';
 import { WeakWordsTable } from './WeakWordsTable';
@@ -11,9 +11,55 @@ interface UserDetailModalProps {
     onClose: () => void;
 }
 
+// Helper to get start of week (Sunday)
+function getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    d.setDate(d.getDate() - day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+// Helper to check if a date is within a week range
+function isInWeek(dateStr: string, weekStart: Date): boolean {
+    const date = new Date(dateStr);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 7);
+    return date >= weekStart && date < weekEnd;
+}
+
 export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
     const [details, setDetails] = useState<AdminUserDetails | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Calculate weekly comparison
+    const weeklyStats = useMemo(() => {
+        if (!details) return null;
+
+        const now = new Date();
+        const thisWeekStart = getWeekStart(now);
+        const lastWeekStart = new Date(thisWeekStart);
+        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+        // This week stats
+        const thisWeekQuizzes = details.quizHistory.filter(q => isInWeek(q.completed_at, thisWeekStart)).length;
+        const thisWeekStudy = details.studyHistory.filter(s => isInWeek(s.start_time, thisWeekStart)).length;
+        const thisWeekWords = details.studyHistory
+            .filter(s => isInWeek(s.start_time, thisWeekStart))
+            .reduce((acc, s) => acc + s.words_reviewed, 0);
+
+        // Last week stats
+        const lastWeekQuizzes = details.quizHistory.filter(q => isInWeek(q.completed_at, lastWeekStart)).length;
+        const lastWeekStudy = details.studyHistory.filter(s => isInWeek(s.start_time, lastWeekStart)).length;
+        const lastWeekWords = details.studyHistory
+            .filter(s => isInWeek(s.start_time, lastWeekStart))
+            .reduce((acc, s) => acc + s.words_reviewed, 0);
+
+        return {
+            thisWeek: { quizzes: thisWeekQuizzes, sessions: thisWeekStudy, words: thisWeekWords },
+            lastWeek: { quizzes: lastWeekQuizzes, sessions: lastWeekStudy, words: lastWeekWords }
+        };
+    }, [details]);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -97,6 +143,30 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
                                 />
                             </div>
 
+                            {/* Weekly Comparison */}
+                            {weeklyStats && (
+                                <Card variant="default" padding="md">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Weekly Progress</h3>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <WeeklyComparisonItem
+                                            label="Quizzes"
+                                            thisWeek={weeklyStats.thisWeek.quizzes}
+                                            lastWeek={weeklyStats.lastWeek.quizzes}
+                                        />
+                                        <WeeklyComparisonItem
+                                            label="Study Sessions"
+                                            thisWeek={weeklyStats.thisWeek.sessions}
+                                            lastWeek={weeklyStats.lastWeek.sessions}
+                                        />
+                                        <WeeklyComparisonItem
+                                            label="Words Reviewed"
+                                            thisWeek={weeklyStats.thisWeek.words}
+                                            lastWeek={weeklyStats.lastWeek.words}
+                                        />
+                                    </div>
+                                </Card>
+                            )}
+
                             {/* Graphical Analysis */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <Card variant="default" padding="md">
@@ -153,6 +223,39 @@ function StatusCard({ icon: Icon, label, value, color, bg }: any) {
                 <p className="text-xs text-gray-500 font-medium uppercase">{label}</p>
                 <p className="text-xl font-bold text-gray-900">{value}</p>
             </div>
+        </div>
+    );
+}
+
+function WeeklyComparisonItem({ label, thisWeek, lastWeek }: { label: string; thisWeek: number; lastWeek: number }) {
+    const diff = thisWeek - lastWeek;
+    const percentChange = lastWeek > 0 ? Math.round((diff / lastWeek) * 100) : (thisWeek > 0 ? 100 : 0);
+
+    let TrendIcon = Minus;
+    let trendColor = 'text-gray-400';
+    let bgColor = 'bg-gray-50';
+
+    if (diff > 0) {
+        TrendIcon = TrendingUp;
+        trendColor = 'text-green-600';
+        bgColor = 'bg-green-50';
+    } else if (diff < 0) {
+        TrendIcon = TrendingDown;
+        trendColor = 'text-red-600';
+        bgColor = 'bg-red-50';
+    }
+
+    return (
+        <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-xs text-gray-500 font-medium mb-2">{label}</p>
+            <p className="text-2xl font-bold text-gray-900">{thisWeek}</p>
+            <div className={`inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full ${bgColor}`}>
+                <TrendIcon className={`w-3 h-3 ${trendColor}`} />
+                <span className={`text-xs font-medium ${trendColor}`}>
+                    {diff === 0 ? 'Same' : `${diff > 0 ? '+' : ''}${percentChange}%`}
+                </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">vs last week ({lastWeek})</p>
         </div>
     );
 }
