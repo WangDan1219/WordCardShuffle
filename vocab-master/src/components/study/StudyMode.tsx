@@ -10,7 +10,7 @@ import { useStudyMode } from '../../hooks/useStudyMode';
 import { useAudio } from '../../hooks/useAudio';
 
 export function StudyMode() {
-  const { setMode, vocabulary, dispatch, state } = useApp();
+  const { setMode, vocabulary, dispatch, state, loadUserData } = useApp();
   const { playFlip, playClick } = useAudio();
   const {
     currentCard,
@@ -34,18 +34,19 @@ export function StudyMode() {
     }
   }, [currentCard]);
 
-  // Update stats when navigating cards
+  // Update stats based on unique words reviewed
   useEffect(() => {
-    if (currentIndex > 0) {
+    const uniqueCount = reviewedWordsRef.current.size;
+    if (uniqueCount > 0) {
       dispatch({
         type: 'UPDATE_STATS',
         payload: {
-          totalWordsStudied: Math.max(state.stats.totalWordsStudied, currentIndex + 1),
+          totalWordsStudied: Math.max(state.stats.totalWordsStudied, uniqueCount),
           lastStudyDate: new Date().toISOString().split('T')[0],
         },
       });
     }
-  }, [currentIndex]);
+  }, [currentCard]);
 
   const handleFlip = () => {
     playFlip();
@@ -73,21 +74,26 @@ export function StudyMode() {
     // Keeping accumulating as long as they are in the mode
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     playClick();
 
-    // Save study session
+    // Save study session and refresh stats
     const uniqueWords = reviewedWordsRef.current.size;
     if (uniqueWords > 0) {
       const wordsList = Array.from(reviewedWordsRef.current);
-      import('../../services/ApiService').then(({ default: api }) => {
-        api.saveStudySession({
+      try {
+        const api = (await import('../../services/ApiService')).default;
+        await api.saveStudySession({
           wordsReviewed: uniqueWords,
           startTime: new Date(startTimeRef.current).toISOString(),
           endTime: new Date().toISOString(),
           words: wordsList
-        }).catch(err => console.error('Failed to save study session:', err));
-      });
+        });
+        // Refresh stats from backend
+        await loadUserData();
+      } catch (err) {
+        console.error('Failed to save study session:', err);
+      }
     }
 
     setMode('dashboard');
@@ -120,7 +126,7 @@ export function StudyMode() {
         }
       />
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto px-4 py-6 lg:py-10">
         {/* Progress bar */}
         <div className="mb-6">
           <ProgressBar
@@ -131,7 +137,7 @@ export function StudyMode() {
         </div>
 
         {/* Flashcard with navigation */}
-        <div className="relative flex items-center gap-2 sm:gap-4">
+        <div className="relative flex items-center gap-2 sm:gap-4 lg:gap-6">
           {/* Previous button */}
           <motion.button
             onClick={handlePrev}
@@ -139,7 +145,7 @@ export function StudyMode() {
             whileHover={{ scale: currentIndex === 0 ? 1 : 1.1 }}
             whileTap={{ scale: currentIndex === 0 ? 1 : 0.9 }}
             className={`
-              p-3 sm:p-4 rounded-xl bg-white shadow-card
+              p-3 sm:p-4 lg:p-5 rounded-xl lg:rounded-2xl bg-white shadow-card
               transition-colors flex-shrink-0
               ${currentIndex === 0
                 ? 'text-gray-300 cursor-not-allowed'
@@ -148,7 +154,7 @@ export function StudyMode() {
             `}
             aria-label="Previous card"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 lg:w-8 lg:h-8" />
           </motion.button>
 
           {/* Card */}
@@ -167,7 +173,7 @@ export function StudyMode() {
             whileHover={{ scale: currentIndex === totalCards - 1 ? 1 : 1.1 }}
             whileTap={{ scale: currentIndex === totalCards - 1 ? 1 : 0.9 }}
             className={`
-              p-3 sm:p-4 rounded-xl bg-white shadow-card
+              p-3 sm:p-4 lg:p-5 rounded-xl lg:rounded-2xl bg-white shadow-card
               transition-colors flex-shrink-0
               ${currentIndex === totalCards - 1
                 ? 'text-gray-300 cursor-not-allowed'
@@ -176,7 +182,7 @@ export function StudyMode() {
             `}
             aria-label="Next card"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6 lg:w-8 lg:h-8" />
           </motion.button>
         </div>
 

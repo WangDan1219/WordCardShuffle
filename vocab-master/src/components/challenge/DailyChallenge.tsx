@@ -20,7 +20,7 @@ const CHALLENGE_QUESTIONS = 20;
 const TIME_PER_QUESTION = 25;
 
 export function DailyChallenge() {
-  const { setMode, vocabulary, dispatch, state: appState } = useApp();
+  const { setMode, vocabulary, loadUserData } = useApp();
   const { playSuccess, playError, playClick, playWarning, playComplete } = useAudio();
 
   const [state, setState] = useState<DailyChallengeState>({
@@ -163,19 +163,7 @@ export function DailyChallenge() {
         // Save completion date
         StorageService.setDailyChallengeDate(getTodayString());
 
-        // Update stats
-        dispatch({
-          type: 'UPDATE_STATS',
-          payload: {
-            challengesCompleted: appState.stats.challengesCompleted + 1,
-            bestChallengeScore: Math.max(
-              appState.stats.bestChallengeScore,
-              prev.pointsEarned
-            ),
-          },
-        });
-
-        // Save to backend
+        // Save to backend (stats are updated by backend automatically)
         import('../../services/ApiService').then(({ default: api }) => {
           const totalTimeSpent = prev.answers.reduce((acc, curr) => acc + curr.timeSpent, 0);
 
@@ -211,11 +199,15 @@ export function DailyChallenge() {
         status: 'active',
       };
     });
-  }, [playClick, playComplete, dispatch, appState.stats]);
+  }, [playClick, playComplete]);
 
   // Handle back to home
-  const handleHome = () => {
+  const handleHome = async () => {
     playClick();
+    // Refresh stats from backend if challenge was completed
+    if (state.status === 'complete') {
+      await loadUserData();
+    }
     setMode('dashboard');
   };
 

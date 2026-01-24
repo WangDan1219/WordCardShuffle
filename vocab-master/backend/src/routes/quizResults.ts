@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { quizResultRepository } from '../repositories/quizResultRepository';
+import { statsRepository } from '../repositories/userRepository';
 import { authMiddleware } from '../middleware/auth';
 import type { AuthRequest } from '../types';
 
@@ -31,6 +32,18 @@ router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
             pointsEarned,
             answers
         });
+
+        // Increment stats based on quiz type
+        if (quizType === 'quiz') {
+            statsRepository.incrementStats(userId, { quizzesTaken: 1 });
+        } else if (quizType === 'challenge') {
+            const currentStats = statsRepository.get(userId);
+            statsRepository.incrementStats(userId, { challengesCompleted: 1 });
+            // Update best challenge score if this is higher
+            if (currentStats && pointsEarned > currentStats.best_challenge_score) {
+                statsRepository.update(userId, { bestChallengeScore: pointsEarned });
+            }
+        }
 
         res.status(201).json({
             success: true,

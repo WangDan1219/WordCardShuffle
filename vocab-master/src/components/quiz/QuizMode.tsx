@@ -13,7 +13,7 @@ import { useAudio } from '../../hooks/useAudio';
 import type { QuizConfig } from '../../types';
 
 export function QuizMode() {
-  const { setMode, vocabulary, dispatch, state: appState } = useApp();
+  const { setMode, vocabulary, loadUserData } = useApp();
   const { playSuccess, playError, playClick, playWarning } = useAudio();
 
   const [config, setConfig] = useState<QuizConfig>({
@@ -146,16 +146,11 @@ export function QuizMode() {
   };
 
   // Handle back to home
-  const handleHome = () => {
+  const handleHome = async () => {
     playClick();
-    // Update stats
+    // Refresh stats from backend if quiz was completed
     if (state.status === 'complete') {
-      dispatch({
-        type: 'UPDATE_STATS',
-        payload: {
-          quizzesTaken: appState.stats.quizzesTaken + 1,
-        },
-      });
+      await loadUserData();
     }
     setMode('dashboard');
   };
