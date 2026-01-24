@@ -4,8 +4,7 @@ import { Flame, Trophy } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
 import { UserMenu } from '../common/UserMenu';
-import { QuestionCard } from '../quiz/QuestionCard';
-import { TypeQuestion } from './TypeQuestion';
+import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { ChallengeResults } from './ChallengeResults';
 import { StreakMilestone } from './StreakMilestone';
 import { useApp } from '../../contexts/AppContext';
@@ -14,7 +13,7 @@ import { useAudio } from '../../hooks/useAudio';
 import type { DailyChallengeState, AnswerRecord } from '../../types';
 import { generateDailyChallengeQuestions } from '../../services/QuizGenerator';
 import { StorageService } from '../../services/StorageService';
-import { calculatePoints, isAnswerCorrect, getTodayString } from '../../utils';
+import { calculatePoints, isMultiSelectCorrect, getTodayString } from '../../utils';
 
 const CHALLENGE_QUESTIONS = 20;
 const TIME_PER_QUESTION = 25;
@@ -93,6 +92,7 @@ export function DailyChallenge() {
     const record: AnswerRecord = {
       questionId: currentQuestion.id,
       selectedAnswer: null,
+      selectedAnswers: [],
       isCorrect: false,
       timeSpent: TIME_PER_QUESTION * 1000,
     };
@@ -107,15 +107,16 @@ export function DailyChallenge() {
     playError();
   }, [currentQuestion, playError]);
 
-  // Handle answer submission
-  const handleAnswer = useCallback((answer: string) => {
+  // Handle answer submission (multi-select)
+  const handleAnswer = useCallback((answers: string[]) => {
     if (state.status !== 'active' || !currentQuestion) return;
 
     timer.pause();
     const timeSpent = Date.now() - answerTimeRef.current;
     const timeRemaining = timer.timeRemaining;
 
-    const isCorrect = isAnswerCorrect(answer, currentQuestion.correctAnswer);
+    const correctAnswers = currentQuestion.correctAnswers || [currentQuestion.correctAnswer];
+    const isCorrect = isMultiSelectCorrect(answers, correctAnswers);
     const newStreak = isCorrect ? state.streak + 1 : 0;
 
     const points = calculatePoints({
@@ -127,7 +128,8 @@ export function DailyChallenge() {
 
     const record: AnswerRecord = {
       questionId: currentQuestion.id,
-      selectedAnswer: answer,
+      selectedAnswer: answers.join(', '),
+      selectedAnswers: answers,
       isCorrect,
       timeSpent,
     };
@@ -180,10 +182,10 @@ export function DailyChallenge() {
               return {
                 questionIndex: prev.questions.indexOf(q),
                 word: q.word.targetWord,
-                promptType: 'mixed',
-                questionFormat: q.format || 'multiple-choice',
-                correctAnswer: q.correctAnswer,
-                selectedAnswer: a.selectedAnswer,
+                promptType: q.promptType,
+                questionFormat: 'multi-select',
+                correctAnswer: (q.correctAnswers || [q.correctAnswer]).join(', '),
+                selectedAnswer: a.selectedAnswers?.join(', ') || a.selectedAnswer,
                 isCorrect: a.isCorrect,
                 timeSpent: a.timeSpent
               };
@@ -351,25 +353,14 @@ export function DailyChallenge() {
         {/* Question */}
         <AnimatePresence mode="wait">
           {currentQuestion && (
-            currentQuestion.format === 'type' ? (
-              <TypeQuestion
-                key={currentQuestion.id}
-                question={currentQuestion}
-                onAnswer={handleAnswer}
-                showResult={state.status === 'review'}
-                userAnswer={currentAnswer?.selectedAnswer || null}
-                disabled={state.status === 'review'}
-              />
-            ) : (
-              <QuestionCard
-                key={currentQuestion.id}
-                question={currentQuestion}
-                onAnswer={handleAnswer}
-                showResult={state.status === 'review'}
-                selectedAnswer={currentAnswer?.selectedAnswer || null}
-                disabled={state.status === 'review'}
-              />
-            )
+            <MultiSelectQuestion
+              key={currentQuestion.id}
+              question={currentQuestion}
+              onAnswer={handleAnswer}
+              showResult={state.status === 'review'}
+              userAnswers={currentAnswer?.selectedAnswers || null}
+              disabled={state.status === 'review'}
+            />
           )}
         </AnimatePresence>
 

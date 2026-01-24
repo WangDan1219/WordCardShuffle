@@ -61,7 +61,80 @@ export function generateQuizQuestions(
 }
 
 /**
- * Generate daily challenge questions with mixed formats
+ * Generate a multi-select question for daily challenge
+ * Shows the target word and asks user to select all matching synonyms or definitions
+ */
+function generateMultiSelectQuestion(
+  word: VocabularyWord,
+  allWords: VocabularyWord[]
+): QuizQuestion {
+  // Decide whether to ask for synonyms or definitions
+  const hasSynonyms = word.synonyms.length > 0;
+  const hasDefinitions = word.definition.length > 0;
+
+  // Prefer synonyms if available, otherwise use definitions
+  const useSynonym = hasSynonyms && (Math.random() > 0.3 || !hasDefinitions);
+
+  let correctAnswers: string[];
+  let promptType: 'definition' | 'synonym';
+  let distractorPool: string[];
+
+  if (useSynonym && hasSynonyms) {
+    // Pick 1-3 synonyms as correct answers (max based on available)
+    const maxCorrect = Math.min(3, word.synonyms.length);
+    const numCorrect = Math.max(1, Math.floor(Math.random() * maxCorrect) + 1);
+    correctAnswers = shuffleArray([...word.synonyms]).slice(0, numCorrect);
+    promptType = 'synonym';
+
+    // Build distractor pool from other words' synonyms
+    distractorPool = allWords
+      .filter(w => w.targetWord !== word.targetWord)
+      .flatMap(w => w.synonyms)
+      .filter(s => !correctAnswers.includes(s) && s !== word.targetWord);
+  } else {
+    // Pick 1-3 definitions as correct answers
+    const maxCorrect = Math.min(3, word.definition.length);
+    const numCorrect = Math.max(1, Math.floor(Math.random() * maxCorrect) + 1);
+    correctAnswers = shuffleArray([...word.definition]).slice(0, numCorrect);
+    promptType = 'definition';
+
+    // Build distractor pool from other words' definitions
+    distractorPool = allWords
+      .filter(w => w.targetWord !== word.targetWord)
+      .flatMap(w => w.definition)
+      .filter(d => !correctAnswers.includes(d));
+  }
+
+  // Calculate how many distractors we need (total 4 options)
+  const numDistractors = 4 - correctAnswers.length;
+
+  // Select random distractors
+  const distractors = shuffleArray(distractorPool).slice(0, numDistractors);
+
+  // If not enough distractors, pad with what we have
+  while (distractors.length < numDistractors && distractorPool.length > 0) {
+    const remaining = distractorPool.filter(d => !distractors.includes(d));
+    if (remaining.length === 0) break;
+    distractors.push(remaining[0]);
+  }
+
+  // Shuffle all options together
+  const options = shuffleArray([...correctAnswers, ...distractors]);
+
+  return {
+    id: generateId(),
+    word,
+    promptType,
+    prompt: word.targetWord, // Show the word, ask for synonyms/definitions
+    options,
+    correctAnswer: correctAnswers[0], // For backwards compatibility
+    correctAnswers,
+    format: 'multi-select'
+  };
+}
+
+/**
+ * Generate daily challenge questions with multi-select format
  */
 export function generateDailyChallengeQuestions(
   words: VocabularyWord[],
@@ -69,9 +142,5 @@ export function generateDailyChallengeQuestions(
 ): QuizQuestion[] {
   const selectedWords = shuffleArray(words).slice(0, count);
 
-  return selectedWords.map(word => {
-    // Randomly choose between MCQ and Type format
-    const format: QuestionFormat = Math.random() > 0.5 ? 'mcq' : 'type';
-    return generateQuizQuestion(word, words, format);
-  });
+  return selectedWords.map(word => generateMultiSelectQuestion(word, words));
 }

@@ -29,6 +29,22 @@ export function isAnswerCorrect(input: string, target: string): boolean {
 }
 
 /**
+ * Check if multi-select answers are all correct (all-or-nothing)
+ * Must select ALL correct answers and NO incorrect ones
+ */
+export function isMultiSelectCorrect(
+  selected: string[],
+  correct: string[]
+): boolean {
+  if (selected.length !== correct.length) return false;
+
+  const normalizedSelected = selected.map(s => s.trim().toLowerCase()).sort();
+  const normalizedCorrect = correct.map(c => c.trim().toLowerCase()).sort();
+
+  return normalizedSelected.every((s, i) => s === normalizedCorrect[i]);
+}
+
+/**
  * Get today's date as string (YYYY-MM-DD)
  */
 export function getTodayString(): string {

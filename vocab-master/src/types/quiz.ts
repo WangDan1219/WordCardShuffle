@@ -2,21 +2,23 @@ import type { VocabularyWord } from './vocabulary';
 
 export type QuizStatus = 'setup' | 'active' | 'review' | 'complete';
 export type PromptType = 'definition' | 'synonym';
-export type QuestionFormat = 'mcq' | 'type';
+export type QuestionFormat = 'mcq' | 'type' | 'multi-select';
 
 export interface QuizQuestion {
   id: string;
   word: VocabularyWord;
   promptType: PromptType;
   prompt: string;
-  options: string[];       // 4 options for MCQ
-  correctAnswer: string;   // targetWord
+  options: string[];       // 4 options for MCQ/multi-select
+  correctAnswer: string;   // targetWord (for single-select)
+  correctAnswers?: string[]; // For multi-select questions
   format: QuestionFormat;  // For daily challenge mixed formats
 }
 
 export interface AnswerRecord {
   questionId: string;
-  selectedAnswer: string | null;
+  selectedAnswer: string | null;        // For single-select
+  selectedAnswers?: string[];           // For multi-select
   isCorrect: boolean;
   timeSpent: number;  // milliseconds
 }
