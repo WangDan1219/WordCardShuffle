@@ -10,17 +10,9 @@ export const updateUsersSchema: Migration = {
         const tableInfo = db.pragma('table_info(users)') as { name: string }[];
         const hasParentId = tableInfo.some(col => col.name === 'parent_id');
 
-        if (hasParentId) {
-            console.log('[Migration 004] Users table already has parent_id. Checking constraint...');
-            // In SQLite, checking the exact constraint definition is hard, but if parent_id exists
-            // it's likely the schema is already correct from a fresh install.
-            // However, to be safe and ensure the ROLE constraint is updated for 'parent' role support,
-            // we will proceed with recreation if we want to be 100% sure, OR we can assume if parent_id
-            // matches, we are good.
-            //
-            // Given the user's issue is specifically about "structure not updated", running this
-            // won't hurt if we do it safely.
-        }
+        // We run the migration anyway to ensure schema correctness (constraints etc)
+        // even if parent_id essentially exists, checking for full correctness is harder,
+        // so we proceed with the robust recreation strategy.
 
         console.log('[Migration 004] Starting schema update for users table...');
 
@@ -30,9 +22,11 @@ export const updateUsersSchema: Migration = {
 
             try {
                 // 1. Rename existing table
+                // Check if users_old already exists (from failed previous run) and drop it if so
+                db.prepare('DROP TABLE IF EXISTS users_old').run();
                 db.prepare('ALTER TABLE users RENAME TO users_old').run();
 
-                // 2. Create new table with updated schema (including parent_id and updated CHECK constraint)
+                // 2. Create new table with updated schema
                 db.prepare(`
           CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,23 +41,54 @@ export const updateUsersSchema: Migration = {
         `).run();
 
                 // 3. Copy data from old table to new table
-                // mapping columns that definitely exist
-                db.prepare(`
-          INSERT INTO users (id, username, password_hash, display_name, role, created_at)
-          SELECT id, username, password_hash, display_name, role, created_at
-          FROM users_old
-        `).run();
+                // Inspect columns of users_old to dynamically build the SELECT statement
+                const oldTableInfo = db.pragma('table_info(users_old)') as { name: string }[];
+                const oldColumns = new Set(oldTableInfo.map(col => col.name));
+
+                console.log('[Migration 004] Old table columns:', Array.from(oldColumns).join(', '));
+
+                // Define how to source existing columns
+                const sourceId = oldColumns.has('id') ? 'id' : 'NULL'; // Should always be there
+                const sourceUsername = oldColumns.has('username') ? 'username' : "''"; // Should exist
+                const sourcePasswordHash = oldColumns.has('password_hash') ? 'password_hash' : "''"; // Should exist
+
+                // Handle potentially missing columns
+                const sourceDisplayName = oldColumns.has('display_name') ? 'display_name' : 'NULL';
+                const sourceRole = oldColumns.has('role') ? 'role' : "'student'";
+                const sourceCreatedAt = oldColumns.has('created_at') ? 'created_at' : "CURRENT_TIMESTAMP";
+                // parent_id is new, so it's always NULL from the old table perspective
+
+                const insertSql = `
+                  INSERT INTO users (id, username, password_hash, display_name, role, created_at, parent_id)
+                  SELECT 
+                    ${sourceId}, 
+                    ${sourceUsername}, 
+                    ${sourcePasswordHash}, 
+                    ${sourceDisplayName}, 
+                    ${sourceRole}, 
+                    ${sourceCreatedAt},
+                    NULL
+                  FROM users_old
+                `;
+
+                console.log('[Migration 004] Executing data copy SQL:', insertSql);
+                db.prepare(insertSql).run();
 
                 // 4. Drop old table
                 db.prepare('DROP TABLE users_old').run();
 
-                // 5. Verify integrity (optional but good)
+                // 5. Verify integrity
                 const count = db.prepare('SELECT COUNT(*) as c FROM users').get() as { c: number };
-                console.log(`[Migration 004] Migrated ${count.c} users.`);
+                console.log(`[Migration 004] Successfully migrated ${count.c} users.`);
 
             } catch (error) {
-                console.error('[Migration 004] Failed. Rolling back (if possible within tx)...', error);
-                throw error; // Transaction will rollback
+                console.error('[Migration 004] Failed. Rolling back...', error);
+
+                // Attempt to restore if we failed *after* renaming but *before* dropping
+                // (Transaction rollback handles data changes, but DDL behavior in SQLite with transactions
+                // is generally generally safe but 'users' table might not exist if creation failed)
+                // However, db.transaction() in better-sqlite3 wraps everything.
+                throw error;
             } finally {
                 // Re-enable foreign keys
                 db.pragma('foreign_keys = ON');
