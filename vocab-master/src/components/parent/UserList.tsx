@@ -50,10 +50,10 @@ export function UserList({ users, onSelectUser }: UserListProps) {
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-xs text-gray-400 flex items-center gap-1">
-                                <Trophy className="w-3 h-3" /> Avg Score
+                                <Trophy className="w-3 h-3" /> Accuracy
                             </span>
                             <span className="font-semibold text-gray-700">
-                                {user.avg_score ? `${Math.round(user.avg_score)}%` : '-'}
+                                {user.avg_accuracy ? `${Math.round(user.avg_accuracy)}%` : '-'}
                             </span>
                         </div>
                         <div className="col-span-2 flex flex-col gap-1 mt-1 pt-3 border-t border-gray-50">

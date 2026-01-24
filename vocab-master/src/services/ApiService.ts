@@ -104,7 +104,7 @@ export interface AdminUserStats {
   quizzes_taken: number;
   total_words_studied: number;
   last_study_date: string | null;
-  avg_score: number | null;
+  avg_accuracy: number | null;
 }
 
 export interface AdminUserDetails {

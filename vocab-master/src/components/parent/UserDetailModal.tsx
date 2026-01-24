@@ -73,9 +73,9 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
                                 />
                                 <StatusCard
                                     icon={Activity}
-                                    label="Avg Score"
+                                    label="Avg Accuracy"
                                     value={`${Math.round(
-                                        details.quizHistory.reduce((acc: number, curr: any) => acc + curr.score, 0) /
+                                        details.quizHistory.reduce((acc: number, curr: any) => acc + (curr.accuracy || 0), 0) /
                                         (details.quizHistory.length || 1)
                                     )}%`}
                                     color="text-green-600"
@@ -100,12 +100,12 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
                             {/* Graphical Analysis */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <Card variant="default" padding="md">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Quiz Performance Trend</h3>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Quiz Accuracy Trend</h3>
                                     <TrendChart
                                         data={details.quizHistory.slice().reverse()}
-                                        dataKey="score"
+                                        dataKey="accuracy"
                                         xAxisKey="completed_at"
-                                        name="Score (%)"
+                                        name="Accuracy (%)"
                                         color="#8884d8"
                                     />
                                 </Card>

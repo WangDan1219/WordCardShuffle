@@ -14,10 +14,11 @@ router.get('/users', requireRole(['admin', 'parent']), (req: any, res) => {
     try {
         const user = req.user;
         let query = `
-      SELECT 
+      SELECT
         u.id, u.username, u.display_name, u.role, u.parent_id, u.created_at,
         us.quizzes_taken, us.total_words_studied, us.last_study_date,
-        (SELECT AVG(score) FROM quiz_results WHERE user_id = u.id) as avg_score
+        (SELECT AVG(correct_answers * 100.0 / total_questions)
+         FROM quiz_results WHERE user_id = u.id AND total_questions > 0) as avg_accuracy
       FROM users u
       LEFT JOIN user_stats us ON u.id = us.user_id
     `;
@@ -56,9 +57,11 @@ router.get('/users/:id/details', requireRole(['admin', 'parent']), (req: any, re
             }
         }
 
-        // Quiz History
+        // Quiz History with calculated accuracy
         const quizHistory = db.prepare(`
-      SELECT * FROM quiz_results WHERE user_id = ? ORDER BY completed_at DESC LIMIT 50
+      SELECT *,
+        ROUND(correct_answers * 100.0 / total_questions, 1) as accuracy
+      FROM quiz_results WHERE user_id = ? ORDER BY completed_at DESC LIMIT 50
     `).all(userId);
 
         // Study History
