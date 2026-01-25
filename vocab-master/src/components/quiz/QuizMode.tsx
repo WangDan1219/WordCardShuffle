@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
@@ -13,8 +14,9 @@ import { useAudio } from '../../hooks/useAudio';
 import type { QuizConfig } from '../../types';
 
 export function QuizMode() {
-  const { setMode, vocabulary, loadUserData } = useApp();
+  const { vocabulary, loadUserData } = useApp();
   const { playSuccess, playError, playClick, playWarning } = useAudio();
+  const navigate = useNavigate();
 
   const [config, setConfig] = useState<QuizConfig>({
     totalQuestions: 10,
@@ -152,7 +154,7 @@ export function QuizMode() {
     if (state.status === 'complete') {
       await loadUserData();
     }
-    setMode('dashboard');
+    navigate('/');
   };
 
   // Cleanup auto-advance timer

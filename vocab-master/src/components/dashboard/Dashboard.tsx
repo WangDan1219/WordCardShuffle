@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Brain, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { ModeCard } from './ModeCard';
@@ -8,16 +9,17 @@ import { useAudio } from '../../hooks/useAudio';
 import { StorageService } from '../../services/StorageService';
 
 export function Dashboard() {
-  const { setMode, vocabulary, state } = useApp();
+  const { vocabulary, state } = useApp();
   const { state: authState } = useAuth();
   const { soundEnabled, toggleSound, playClick } = useAudio();
+  const navigate = useNavigate();
 
   const hasTodayChallenge = StorageService.hasTodayChallenge();
   const userRole = authState.user?.role || 'student';
 
   const handleModeSelect = (mode: 'study' | 'quiz' | 'challenge') => {
     playClick();
-    setMode(mode);
+    navigate(`/${mode}`);
   };
 
   return (
@@ -101,7 +103,7 @@ export function Dashboard() {
               description="Manage users and system settings"
               icon={Brain} // Using Brain mostly for placeholder, effectively replaces "AdminDashboard"
               color="quiz" // Re-using Quiz color style (Amber) for Admin
-              onClick={() => setMode('admin')}
+              onClick={() => navigate('/admin')}
             />
           ) : userRole === 'parent' ? (
             <ModeCard
@@ -109,7 +111,7 @@ export function Dashboard() {
               description="View your children's progress"
               icon={Trophy} // Re-using Trophy
               color="challenge" // Re-using Challenge color style (Red/Rose)
-              onClick={() => setMode('parent')}
+              onClick={() => navigate('/parent')}
             />
           ) : (
             // Student Content

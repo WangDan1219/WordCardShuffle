@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogOut, ChevronDown, Cloud } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -9,6 +10,7 @@ export function UserMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const { state: authState, logout } = useAuth();
   const { state: appState } = useApp();
+  const navigate = useNavigate();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -25,6 +27,7 @@ export function UserMenu() {
   const handleLogout = async () => {
     setIsOpen(false);
     await logout();
+    navigate('/login');
   };
 
   if (!authState.user) return null;

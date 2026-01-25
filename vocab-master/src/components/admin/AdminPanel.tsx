@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import { Shield, Plus, Edit, Trash2, LogOut } from 'lucide-react';
 import { Button } from '../common';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
-import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from './EditUserModal';
 import { AddUserModal } from './AddUserModal';
 
 export function AdminPanel() {
-    const { setMode } = useApp();
     const { logout } = useAuth();
+    const navigate = useNavigate();
     const [users, setUsers] = useState<AdminUserStats[]>([]);
     const [loading, setLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<AdminUserStats | null>(null);
@@ -34,10 +33,11 @@ export function AdminPanel() {
 
     const handleLogout = async () => {
         await logout();
+        navigate('/login');
     };
 
     const handleBack = () => {
-        setMode('dashboard');
+        navigate('/');
     };
 
     return (
@@ -103,7 +103,7 @@ export function AdminPanel() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                                 ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800' :
                                                     user.role === 'parent' ? 'bg-purple-100 text-purple-800' :
                                                         'bg-green-100 text-green-800'}`}>

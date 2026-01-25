@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from '../common';
 import { UserList } from './UserList';
 import { UserDetailModal } from './UserDetailModal';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
-import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 export function ParentDashboard() {
-    const { setMode } = useApp();
     const { logout } = useAuth();
+    const navigate = useNavigate();
     const [users, setUsers] = useState<AdminUserStats[]>([]);
     const [selectedUser, setSelectedUser] = useState<AdminUserStats | null>(null);
     const [loading, setLoading] = useState(false);
@@ -34,11 +34,11 @@ export function ParentDashboard() {
 
     const handleLogout = async () => {
         await logout();
-        // AuthContext will handle redirect/state clearing
+        navigate('/login');
     };
 
     const handleBack = () => {
-        setMode('dashboard');
+        navigate('/');
     };
 
     return (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flame, Trophy } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
@@ -19,8 +20,9 @@ const CHALLENGE_QUESTIONS = 20;
 const TIME_PER_QUESTION = 25;
 
 export function DailyChallenge() {
-  const { setMode, vocabulary, loadUserData } = useApp();
+  const { vocabulary, loadUserData } = useApp();
   const { playSuccess, playError, playClick, playWarning, playComplete } = useAudio();
+  const navigate = useNavigate();
 
   const [state, setState] = useState<DailyChallengeState>({
     questions: [],
@@ -210,7 +212,7 @@ export function DailyChallenge() {
     if (state.status === 'complete') {
       await loadUserData();
     }
-    setMode('dashboard');
+    navigate('/');
   };
 
   // Intro screen

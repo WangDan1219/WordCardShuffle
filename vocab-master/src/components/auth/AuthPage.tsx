@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -7,9 +8,45 @@ import { RegisterForm } from './RegisterForm';
 
 type AuthMode = 'login' | 'register';
 
+interface LocationState {
+  from?: {
+    pathname: string;
+  };
+}
+
 export function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('login');
   const { state, login, register, clearError } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get the intended destination from location state
+  const locationState = location.state as LocationState | null;
+  const from = locationState?.from?.pathname;
+
+  // Redirect after successful authentication
+  useEffect(() => {
+    if (state.isAuthenticated && state.user) {
+      // If there's a saved destination, go there
+      if (from && from !== '/login') {
+        navigate(from, { replace: true });
+        return;
+      }
+
+      // Otherwise, redirect based on user role
+      const role = state.user.role;
+      switch (role) {
+        case 'parent':
+          navigate('/parent', { replace: true });
+          break;
+        case 'admin':
+          navigate('/admin', { replace: true });
+          break;
+        default:
+          navigate('/', { replace: true });
+      }
+    }
+  }, [state.isAuthenticated, state.user, from, navigate]);
 
   const handleLogin = async (username: string, password: string) => {
     await login(username, password);

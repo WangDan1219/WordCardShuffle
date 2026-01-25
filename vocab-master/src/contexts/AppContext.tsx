@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { AppState, AppMode, UserSettings, UserStats, VocabularyWord } from '../types';
 import { StorageService } from '../services/StorageService';
 import ApiService from '../services/ApiService';
@@ -7,20 +8,18 @@ import wordsData from '../assets/words.json';
 
 // Actions
 type AppAction =
-  | { type: 'SET_MODE'; payload: AppMode }
   | { type: 'UPDATE_SETTINGS'; payload: Partial<UserSettings> }
   | { type: 'UPDATE_STATS'; payload: Partial<UserStats> }
   | { type: 'LOAD_USER_DATA'; payload: { settings: UserSettings; stats: UserStats } }
   | { type: 'SET_SYNCING'; payload: boolean };
 
 // Extended state for sync status
-interface ExtendedAppState extends AppState {
+interface ExtendedAppState extends Omit<AppState, 'currentMode'> {
   isSyncing: boolean;
 }
 
 // Initial state
 const initialState: ExtendedAppState = {
-  currentMode: 'dashboard',
   settings: StorageService.getSettings(),
   stats: StorageService.getStats(),
   isSyncing: false,
@@ -29,9 +28,6 @@ const initialState: ExtendedAppState = {
 // Reducer
 function appReducer(state: ExtendedAppState, action: AppAction): ExtendedAppState {
   switch (action.type) {
-    case 'SET_MODE':
-      return { ...state, currentMode: action.payload };
-
     case 'UPDATE_SETTINGS': {
       const newSettings = { ...state.settings, ...action.payload };
       // Always save to localStorage as fallback
@@ -61,11 +57,32 @@ function appReducer(state: ExtendedAppState, action: AppAction): ExtendedAppStat
   }
 }
 
+// Helper to derive currentMode from pathname
+function deriveCurrentMode(pathname: string): AppMode {
+  switch (pathname) {
+    case '/study':
+      return 'study';
+    case '/quiz':
+      return 'quiz';
+    case '/challenge':
+      return 'challenge';
+    case '/parent':
+      return 'parent';
+    case '/admin':
+      return 'admin';
+    case '/login':
+      return 'login';
+    default:
+      return 'dashboard';
+  }
+}
+
 // Context type
 interface AppContextType {
-  state: ExtendedAppState;
+  state: ExtendedAppState & { currentMode: AppMode };
   dispatch: React.Dispatch<AppAction>;
   vocabulary: VocabularyWord[];
+  /** @deprecated Use useNavigate() from react-router-dom instead */
   setMode: (mode: AppMode) => void;
   updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
   updateStats: (stats: Partial<UserStats>) => Promise<void>;
@@ -84,6 +101,11 @@ interface AppProviderProps {
 
 export function AppProvider({ children, isAuthenticated = false }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Derive currentMode from location
+  const currentMode = deriveCurrentMode(location.pathname);
 
   // Load vocabulary data
   const vocabulary = wordsData as VocabularyWord[];
@@ -124,10 +146,19 @@ export function AppProvider({ children, isAuthenticated = false }: AppProviderPr
     }
   }, [isAuthenticated, loadUserData]);
 
-  // Helper function to set mode
+  // Helper function to set mode (deprecated - uses navigate internally)
   const setMode = useCallback((mode: AppMode) => {
-    dispatch({ type: 'SET_MODE', payload: mode });
-  }, []);
+    const routes: Record<AppMode, string> = {
+      dashboard: '/',
+      study: '/study',
+      quiz: '/quiz',
+      challenge: '/challenge',
+      parent: '/parent',
+      admin: '/admin',
+      login: '/login',
+    };
+    navigate(routes[mode]);
+  }, [navigate]);
 
   // Update settings with API sync
   const updateSettings = useCallback(async (settings: Partial<UserSettings>) => {
@@ -161,8 +192,14 @@ export function AppProvider({ children, isAuthenticated = false }: AppProviderPr
     }
   }, [isAuthenticated]);
 
+  // Combine state with derived currentMode
+  const stateWithMode = {
+    ...state,
+    currentMode,
+  };
+
   const value: AppContextType = {
-    state,
+    state: stateWithMode,
     dispatch,
     vocabulary,
     setMode,

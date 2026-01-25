@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
@@ -10,8 +11,9 @@ import { useStudyMode } from '../../hooks/useStudyMode';
 import { useAudio } from '../../hooks/useAudio';
 
 export function StudyMode() {
-  const { setMode, vocabulary, dispatch, state, loadUserData } = useApp();
+  const { vocabulary, dispatch, state, loadUserData } = useApp();
   const { playFlip, playClick } = useAudio();
+  const navigate = useNavigate();
   const {
     currentCard,
     currentIndex,
@@ -96,7 +98,7 @@ export function StudyMode() {
       }
     }
 
-    setMode('dashboard');
+    navigate('/');
   };
 
   if (!currentCard) {
