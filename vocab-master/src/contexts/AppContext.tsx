@@ -1,10 +1,9 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { AppState, AppMode, UserSettings, UserStats, VocabularyWord } from '../types';
 import { StorageService } from '../services/StorageService';
 import ApiService from '../services/ApiService';
-import wordsData from '../assets/words.json';
 
 // Actions
 type AppAction =
@@ -82,6 +81,7 @@ interface AppContextType {
   state: ExtendedAppState & { currentMode: AppMode };
   dispatch: React.Dispatch<AppAction>;
   vocabulary: VocabularyWord[];
+  vocabularyLoading: boolean;
   /** @deprecated Use useNavigate() from react-router-dom instead */
   setMode: (mode: AppMode) => void;
   updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
@@ -93,6 +93,9 @@ interface AppContextType {
 // Create context
 const AppContext = createContext<AppContextType | null>(null);
 
+// Cache for vocabulary data
+let vocabularyCache: VocabularyWord[] | null = null;
+
 // Provider component
 interface AppProviderProps {
   children: ReactNode;
@@ -101,14 +104,34 @@ interface AppProviderProps {
 
 export function AppProvider({ children, isAuthenticated = false }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const [vocabulary, setVocabulary] = useState<VocabularyWord[]>(vocabularyCache || []);
+  const [vocabularyLoading, setVocabularyLoading] = useState(!vocabularyCache);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Derive currentMode from location
   const currentMode = deriveCurrentMode(location.pathname);
 
-  // Load vocabulary data
-  const vocabulary = wordsData as VocabularyWord[];
+  // Load vocabulary data from public folder
+  useEffect(() => {
+    if (vocabularyCache) {
+      setVocabulary(vocabularyCache);
+      setVocabularyLoading(false);
+      return;
+    }
+
+    fetch('/words.json')
+      .then(res => res.json())
+      .then((data: VocabularyWord[]) => {
+        vocabularyCache = data;
+        setVocabulary(data);
+        setVocabularyLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load vocabulary:', err);
+        setVocabularyLoading(false);
+      });
+  }, []);
 
   // Load user data from API when authenticated
   const loadUserData = useCallback(async () => {
@@ -202,6 +225,7 @@ export function AppProvider({ children, isAuthenticated = false }: AppProviderPr
     state: stateWithMode,
     dispatch,
     vocabulary,
+    vocabularyLoading,
     setMode,
     updateSettings,
     updateStats,

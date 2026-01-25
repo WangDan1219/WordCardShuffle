@@ -9,15 +9,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom'],
-          'motion': ['framer-motion'],
-          'audio': ['howler'],
+          // Core React
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Animation library
+          'vendor-motion': ['framer-motion'],
+          // Audio library
+          'vendor-audio': ['howler'],
+          // Icons
+          'vendor-icons': ['lucide-react'],
         }
       }
     },
-    chunkSizeWarningLimit: 1500, // Increase limit for vocabulary JSON
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'framer-motion', 'howler']
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'howler', 'lucide-react']
   }
 })
