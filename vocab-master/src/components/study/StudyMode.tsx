@@ -189,14 +189,14 @@ export function StudyMode() {
         </div>
 
         {/* Keyboard hint */}
-        <motion.p
+        {/* <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="text-center text-sm text-gray-400 mt-6"
         >
           Use arrow keys to navigate, Space to flip
-        </motion.p>
+        </motion.p> */}
       </main>
     </div>
   );
