@@ -42,10 +42,13 @@ export function StreakMilestone({ streak, isVisible, onDismiss }: StreakMileston
   // Auto-dismiss after 1.5 seconds
   useEffect(() => {
     if (isVisible) {
-      const timer = setTimeout(onDismiss, 1500);
+      const timer = setTimeout(() => {
+        onDismiss();
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [isVisible, onDismiss]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible]);
 
   return (
     <AnimatePresence>
