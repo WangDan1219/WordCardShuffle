@@ -6,6 +6,7 @@ import { ApiService, type AdminUserStats } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from './EditUserModal';
 import { AddUserModal } from './AddUserModal';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 export function AdminPanel() {
     const { logout } = useAuth();
@@ -14,6 +15,7 @@ export function AdminPanel() {
     const [loading, setLoading] = useState(false);
     const [editingUser, setEditingUser] = useState<AdminUserStats | null>(null);
     const [showAddUser, setShowAddUser] = useState(false);
+    const [deletingUser, setDeletingUser] = useState<AdminUserStats | null>(null);
 
     useEffect(() => {
         loadUsers();
@@ -38,6 +40,12 @@ export function AdminPanel() {
 
     const handleBack = () => {
         navigate('/');
+    };
+
+    const handleDeleteUser = async () => {
+        if (!deletingUser) return;
+        await ApiService.deleteUser(deletingUser.id);
+        await loadUsers();
     };
 
     return (
@@ -124,7 +132,10 @@ export function AdminPanel() {
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
-                                            <button className="text-red-600 hover:text-red-900">
+                                            <button
+                                                onClick={() => setDeletingUser(user)}
+                                                className="text-red-600 hover:text-red-900 cursor-pointer"
+                                            >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </td>
@@ -152,6 +163,16 @@ export function AdminPanel() {
                     allUsers={users}
                     onClose={() => setShowAddUser(false)}
                     onSave={loadUsers}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingUser && (
+                <DeleteConfirmModal
+                    userName={deletingUser.display_name || deletingUser.username}
+                    userRole={deletingUser.role}
+                    onConfirm={handleDeleteUser}
+                    onClose={() => setDeletingUser(null)}
                 />
             )}
         </div>

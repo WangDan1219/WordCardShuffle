@@ -426,6 +426,12 @@ class ApiServiceClass {
     });
   }
 
+  async deleteUser(userId: number): Promise<{ success: boolean; message: string }> {
+    return this.fetchWithAuth<{ success: boolean; message: string }>(`/admin/users/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     const response = await fetch(`${API_BASE_URL}/health`);

@@ -266,4 +266,63 @@ router.post('/users', async (req, res) => {
     }
 });
 
+// Delete User
+router.delete('/users/:id', requireRole(['admin']), (req: any, res) => {
+    try {
+        const userId = Number(req.params.id);
+        const requestingUser = req.user;
+
+        // Prevent self-deletion
+        if (userId === requestingUser.userId) {
+            res.status(400).json({ error: 'Cannot delete your own account' });
+            return;
+        }
+
+        // Check if user exists
+        const targetUser = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(userId) as { id: number; username: string; role: string } | undefined;
+        if (!targetUser) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
+        // Delete user and all related data in a transaction
+        db.transaction(() => {
+            // Delete quiz answers (depends on quiz_results)
+            db.prepare(`
+                DELETE FROM quiz_answers
+                WHERE quiz_result_id IN (SELECT id FROM quiz_results WHERE user_id = ?)
+            `).run(userId);
+
+            // Delete quiz results
+            db.prepare('DELETE FROM quiz_results WHERE user_id = ?').run(userId);
+
+            // Delete study sessions
+            db.prepare('DELETE FROM study_sessions WHERE user_id = ?').run(userId);
+
+            // Delete daily challenges
+            db.prepare('DELETE FROM daily_challenges WHERE user_id = ?').run(userId);
+
+            // Delete user stats
+            db.prepare('DELETE FROM user_stats WHERE user_id = ?').run(userId);
+
+            // Delete user settings
+            db.prepare('DELETE FROM user_settings WHERE user_id = ?').run(userId);
+
+            // Delete refresh tokens
+            db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?').run(userId);
+
+            // Unlink any children (set their parent_id to null)
+            db.prepare('UPDATE users SET parent_id = NULL WHERE parent_id = ?').run(userId);
+
+            // Finally delete the user
+            db.prepare('DELETE FROM users WHERE id = ?').run(userId);
+        })();
+
+        res.json({ success: true, message: `User ${targetUser.username} deleted successfully` });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
 export default router;
