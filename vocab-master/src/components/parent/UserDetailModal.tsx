@@ -188,6 +188,8 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
                                         xAxisKey="start_time"
                                         name="Words Reviewed"
                                         color="#82ca9d"
+                                        aggregateByDay={true}
+                                        chartType="bar"
                                     />
                                 </Card>
                             </div>
