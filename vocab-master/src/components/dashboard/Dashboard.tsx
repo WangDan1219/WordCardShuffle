@@ -1,21 +1,43 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Brain, Trophy, Volume2, VolumeX } from 'lucide-react';
+import { BookOpen, Brain, Trophy, Volume2, VolumeX, Flame } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { UserMenu } from '../common/UserMenu';
 import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAudio } from '../../hooks/useAudio';
 import { StorageService } from '../../services/StorageService';
+import ApiService from '../../services/ApiService';
+
+interface ActivityStats {
+  quizCount: number;
+  avgAccuracy: number;
+  bestScore: number;
+  studySessions: number;
+  wordsReviewed: number;
+  currentStreak: number;
+}
 
 export function Dashboard() {
-  const { vocabulary, state } = useApp();
+  const { vocabulary } = useApp();
   const { state: authState } = useAuth();
   const { soundEnabled, toggleSound, playClick } = useAudio();
   const navigate = useNavigate();
 
   const hasTodayChallenge = StorageService.hasTodayChallenge();
   const userRole = authState.user?.role || 'student';
+
+  // Fetch activity-based stats for students
+  const [activityStats, setActivityStats] = useState<ActivityStats | null>(null);
+
+  useEffect(() => {
+    if (userRole === 'student') {
+      ApiService.getActivityStats()
+        .then(setActivityStats)
+        .catch(err => console.error('Failed to fetch activity stats:', err));
+    }
+  }, [userRole]);
 
   const handleModeSelect = (mode: 'study' | 'quiz' | 'challenge') => {
     playClick();
@@ -149,7 +171,7 @@ export function Dashboard() {
         </motion.div>
 
         {/* Stats summary - Only for Students */}
-        {userRole === 'student' && (
+        {userRole === 'student' && activityStats && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -157,38 +179,48 @@ export function Dashboard() {
             className="mt-8 p-6 bg-white rounded-3xl border-2 border-primary-100/50 shadow-xl shadow-primary-100/50"
           >
             <h2 className="text-sm font-black text-primary-400 uppercase tracking-widest mb-4 text-center">
-              Your Super Stats
+              Your Stats
             </h2>
-            <div className="grid grid-cols-3 gap-4">
-              {/* Words Studied */}
+            <div className="grid grid-cols-4 gap-3">
+              {/* Quizzes */}
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-2xl bg-study-light flex items-center justify-center mb-2 text-study-dark">
-                  <BookOpen size={20} strokeWidth={3} />
+                <div className="w-10 h-10 rounded-xl bg-quiz-light flex items-center justify-center mb-1.5 text-quiz-dark">
+                  <Brain size={18} strokeWidth={3} />
                 </div>
-                <p className="text-2xl font-black text-gray-800">
-                  {state.stats.totalWordsStudied}
+                <p className="text-xl font-black text-gray-800">
+                  {activityStats.quizCount}
                 </p>
-                <p className="text-xs text-gray-500 font-bold">Studied</p>
+                <p className="text-[10px] text-gray-500 font-bold">Quizzes</p>
               </div>
-              {/* Quizzes Taken */}
+              {/* Accuracy */}
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-2xl bg-quiz-light flex items-center justify-center mb-2 text-quiz-dark">
-                  <Brain size={20} strokeWidth={3} />
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center mb-1.5 text-green-600">
+                  <Trophy size={18} strokeWidth={3} />
                 </div>
-                <p className="text-2xl font-black text-gray-800">
-                  {state.stats.quizzesTaken}
+                <p className="text-xl font-black text-gray-800">
+                  {activityStats.avgAccuracy}%
                 </p>
-                <p className="text-xs text-gray-500 font-bold">Quizzes</p>
+                <p className="text-[10px] text-gray-500 font-bold">Accuracy</p>
               </div>
-              {/* Best Score */}
+              {/* Words Reviewed */}
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-2xl bg-challenge-light flex items-center justify-center mb-2 text-challenge-dark">
-                  <Trophy size={20} strokeWidth={3} />
+                <div className="w-10 h-10 rounded-xl bg-study-light flex items-center justify-center mb-1.5 text-study-dark">
+                  <BookOpen size={18} strokeWidth={3} />
                 </div>
-                <p className="text-2xl font-black text-gray-800">
-                  {state.stats.bestChallengeScore}
+                <p className="text-xl font-black text-gray-800">
+                  {activityStats.wordsReviewed}
                 </p>
-                <p className="text-xs text-gray-500 font-bold">Best Score</p>
+                <p className="text-[10px] text-gray-500 font-bold">Reviewed</p>
+              </div>
+              {/* Streak */}
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 rounded-xl bg-challenge-light flex items-center justify-center mb-1.5 text-challenge-dark">
+                  <Flame size={18} strokeWidth={3} />
+                </div>
+                <p className="text-xl font-black text-gray-800">
+                  {activityStats.currentStreak}
+                </p>
+                <p className="text-[10px] text-gray-500 font-bold">Streak</p>
               </div>
             </div>
           </motion.div>

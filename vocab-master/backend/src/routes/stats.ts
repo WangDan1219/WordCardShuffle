@@ -95,6 +95,80 @@ router.post('/increment', (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /api/stats/activity - Get accurate stats from activity logs (not cached counters)
+router.get('/activity', (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    // Quiz stats from quiz_results table
+    const quizStats = db.prepare(`
+      SELECT
+        COUNT(*) as quiz_count,
+        COALESCE(ROUND(AVG(correct_answers * 100.0 / NULLIF(total_questions, 0)), 0), 0) as avg_accuracy,
+        COALESCE(MAX(correct_answers), 0) as best_score
+      FROM quiz_results
+      WHERE user_id = ?
+    `).get(userId) as { quiz_count: number; avg_accuracy: number; best_score: number };
+
+    // Study stats from study_sessions table
+    const studyStats = db.prepare(`
+      SELECT
+        COUNT(*) as session_count,
+        COALESCE(SUM(words_reviewed), 0) as words_reviewed
+      FROM study_sessions
+      WHERE user_id = ?
+    `).get(userId) as { session_count: number; words_reviewed: number };
+
+    // Calculate streak from activity dates
+    const activityDates = db.prepare(`
+      SELECT DISTINCT date(start_time) as activity_date FROM study_sessions WHERE user_id = ?
+      UNION
+      SELECT DISTINCT date(completed_at) as activity_date FROM quiz_results WHERE user_id = ?
+      ORDER BY activity_date DESC
+    `).all(userId, userId) as { activity_date: string }[];
+
+    let streak = 0;
+    if (activityDates.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const mostRecentDate = new Date(activityDates[0].activity_date);
+      const diffFromToday = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // If activity today or yesterday, count the streak
+      if (diffFromToday <= 1) {
+        let expectedDate = mostRecentDate;
+        for (const { activity_date } of activityDates) {
+          const currentDate = new Date(activity_date);
+          const diff = Math.floor((expectedDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diff <= 1) {
+            streak++;
+            expectedDate = new Date(currentDate);
+            expectedDate.setDate(expectedDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    res.json({
+      quizCount: quizStats.quiz_count,
+      avgAccuracy: quizStats.avg_accuracy,
+      bestScore: quizStats.best_score,
+      studySessions: studyStats.session_count,
+      wordsReviewed: studyStats.words_reviewed,
+      currentStreak: streak
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'Failed to get activity stats'
+    });
+  }
+});
+
 // GET /api/stats/weak-words - Get words the user struggles with
 router.get('/weak-words', (req: AuthRequest, res: Response) => {
   try {

@@ -332,6 +332,17 @@ class ApiServiceClass {
     return this.fetchWithAuth('/stats/weak-words');
   }
 
+  async getActivityStats(): Promise<{
+    quizCount: number;
+    avgAccuracy: number;
+    bestScore: number;
+    studySessions: number;
+    wordsReviewed: number;
+    currentStreak: number;
+  }> {
+    return this.fetchWithAuth('/stats/activity');
+  }
+
   // Challenges endpoints
   async getTodayChallenge(): Promise<TodayChallengeResponse> {
     return this.fetchWithAuth<TodayChallengeResponse>('/challenges/today');
