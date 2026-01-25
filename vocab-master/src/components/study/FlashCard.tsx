@@ -55,18 +55,18 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
         {/* Front of card - Word */}
         <div
           className={`
-            w-full min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px]
-            bg-white rounded-2xl shadow-card
+            w-full min-h-[280px] sm:min-h-[320px] md:min-h-[400px] lg:min-h-[480px] xl:min-h-[540px] 2xl:min-h-[600px]
+            bg-white rounded-2xl lg:rounded-3xl shadow-card
             flex flex-col items-center justify-center
-            p-6 md:p-8 lg:p-10 backface-hidden
+            p-6 md:p-8 lg:p-12 xl:p-14 backface-hidden
             ${isFlipped ? 'invisible' : ''}
           `}
           style={{ backfaceVisibility: 'hidden' }}
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 text-center">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-bold text-gray-900 text-center">
             {word.targetWord}
           </h2>
-          <p className="mt-6 text-sm md:text-base text-gray-400">
+          <p className="mt-6 lg:mt-8 text-sm md:text-base lg:text-lg text-gray-400">
             Click card to flip
           </p>
         </div>
@@ -75,9 +75,9 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
         <div
           className={`
             absolute top-0 left-0
-            w-full min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px]
-            bg-white rounded-2xl shadow-card
-            p-6 md:p-8 lg:p-10 backface-hidden rotate-y-180
+            w-full min-h-[280px] sm:min-h-[320px] md:min-h-[400px] lg:min-h-[480px] xl:min-h-[540px] 2xl:min-h-[600px]
+            bg-white rounded-2xl lg:rounded-3xl shadow-card
+            p-6 md:p-8 lg:p-12 xl:p-14 backface-hidden rotate-y-180
             flex flex-col
             ${!isFlipped ? 'invisible' : ''}
           `}
@@ -87,15 +87,15 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
           }}
         >
           {/* Definitions */}
-          <div className="flex-1">
-            <h3 className="text-xs md:text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3">
+          <div className="flex-1 overflow-y-auto">
+            <h3 className="text-xs md:text-sm lg:text-base font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3 lg:mb-4">
               Definition
             </h3>
-            <ul className="space-y-2 md:space-y-3">
+            <ul className="space-y-2 md:space-y-3 lg:space-y-4">
               {word.definition.map((def, index) => (
                 <li
                   key={index}
-                  className="text-gray-700 text-sm sm:text-base md:text-lg lg:text-xl flex items-start gap-2"
+                  className="text-gray-700 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl flex items-start gap-2 lg:gap-3"
                 >
                   <span className="text-primary-500 mt-1">•</span>
                   <span>{def}</span>
@@ -105,15 +105,15 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
 
             {/* Synonyms */}
             {word.synonyms.length > 0 && (
-              <div className="mt-4 md:mt-6">
-                <h3 className="text-xs md:text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3">
+              <div className="mt-4 md:mt-6 lg:mt-8">
+                <h3 className="text-xs md:text-sm lg:text-base font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3 lg:mb-4">
                   Synonyms
                 </h3>
-                <div className="flex flex-wrap gap-2 md:gap-3">
+                <div className="flex flex-wrap gap-2 md:gap-3 lg:gap-4">
                   {word.synonyms.map((synonym, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 md:px-4 md:py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm md:text-base font-medium"
+                      className="px-3 py-1 md:px-4 md:py-1.5 lg:px-5 lg:py-2 bg-primary-100 text-primary-700 rounded-full text-sm md:text-base lg:text-lg font-medium"
                     >
                       {synonym}
                     </span>
@@ -124,18 +124,18 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
 
             {/* Example sentence */}
             {exampleSentence && (
-              <div className="mt-4 md:mt-6">
-                <h3 className="text-xs md:text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3">
+              <div className="mt-4 md:mt-6 lg:mt-8">
+                <h3 className="text-xs md:text-sm lg:text-base font-semibold text-gray-400 uppercase tracking-wide mb-2 md:mb-3 lg:mb-4">
                   Example
                 </h3>
-                <p className="text-gray-600 text-sm md:text-base lg:text-lg">
+                <p className="text-gray-600 text-sm md:text-base lg:text-lg xl:text-xl">
                   "{renderExampleWithHighlight(exampleSentence)}"
                 </p>
               </div>
             )}
           </div>
 
-          <p className="mt-4 text-xs md:text-sm text-gray-400 text-center">
+          <p className="mt-4 lg:mt-6 text-xs md:text-sm lg:text-base text-gray-400 text-center">
             Click card to flip back
           </p>
         </div>

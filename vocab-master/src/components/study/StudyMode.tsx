@@ -128,7 +128,7 @@ export function StudyMode() {
         }
       />
 
-      <main className="max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl mx-auto px-4 py-6 lg:py-10">
+      <main className="max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-4 py-6 lg:py-8 xl:py-10">
         {/* Progress bar */}
         <div className="mb-6">
           <ProgressBar
