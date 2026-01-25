@@ -160,7 +160,7 @@ export function StudyMode() {
           </motion.button>
 
           {/* Card */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <FlashCard
               word={currentCard}
               isFlipped={isFlipped}

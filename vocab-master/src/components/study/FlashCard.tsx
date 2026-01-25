@@ -63,7 +63,7 @@ export function FlashCard({ word, isFlipped, onFlip }: FlashCardProps) {
           `}
           style={{ backfaceVisibility: 'hidden' }}
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl font-bold text-gray-900 text-center">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold text-gray-900 text-center px-4">
             {word.targetWord}
           </h2>
           <p className="mt-6 lg:mt-8 text-sm md:text-base lg:text-lg text-gray-400">
