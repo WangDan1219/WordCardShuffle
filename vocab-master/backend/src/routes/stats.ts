@@ -12,14 +12,11 @@ router.use(authMiddleware);
 // GET /api/stats
 router.get('/', (req: AuthRequest, res: Response) => {
   try {
-    const stats = statsRepository.get(req.user!.userId);
+    let stats = statsRepository.get(req.user!.userId);
 
+    // Auto-create stats if they don't exist
     if (!stats) {
-      res.status(404).json({
-        error: 'Not Found',
-        message: 'Stats not found'
-      });
-      return;
+      stats = statsRepository.createDefault(req.user!.userId);
     }
 
     const response: UserStats = {

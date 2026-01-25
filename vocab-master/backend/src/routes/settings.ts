@@ -12,14 +12,11 @@ router.use(authMiddleware);
 // GET /api/settings
 router.get('/', (req: AuthRequest, res: Response) => {
   try {
-    const settings = settingsRepository.get(req.user!.userId);
+    let settings = settingsRepository.get(req.user!.userId);
 
+    // Auto-create settings if they don't exist
     if (!settings) {
-      res.status(404).json({
-        error: 'Not Found',
-        message: 'Settings not found'
-      });
-      return;
+      settings = settingsRepository.createDefault(req.user!.userId);
     }
 
     const response: UserSettings = {
@@ -40,6 +37,11 @@ router.get('/', (req: AuthRequest, res: Response) => {
 router.put('/', validate(updateSettingsSchema), (req: AuthRequest, res: Response) => {
   try {
     const { soundEnabled, autoAdvance } = req.body as UpdateSettingsRequest;
+
+    // Auto-create settings if they don't exist before updating
+    if (!settingsRepository.get(req.user!.userId)) {
+      settingsRepository.createDefault(req.user!.userId);
+    }
 
     const settings = settingsRepository.update(
       req.user!.userId,

@@ -84,6 +84,15 @@ export const settingsRepository = {
     return stmt.get(userId) as UserSettingsRow | undefined;
   },
 
+  createDefault(userId: number): UserSettingsRow {
+    const stmt = db.prepare(`
+      INSERT INTO user_settings (user_id, sound_enabled, auto_advance)
+      VALUES (?, 1, 0)
+    `);
+    stmt.run(userId);
+    return this.get(userId)!;
+  },
+
   update(userId: number, soundEnabled?: boolean, autoAdvance?: boolean): UserSettingsRow {
     const current = this.get(userId);
     if (!current) {
@@ -108,6 +117,15 @@ export const statsRepository = {
   get(userId: number): UserStatsRow | undefined {
     const stmt = db.prepare('SELECT * FROM user_stats WHERE user_id = ?');
     return stmt.get(userId) as UserStatsRow | undefined;
+  },
+
+  createDefault(userId: number): UserStatsRow {
+    const stmt = db.prepare(`
+      INSERT INTO user_stats (user_id, total_words_studied, quizzes_taken, challenges_completed, best_challenge_score, last_study_date)
+      VALUES (?, 0, 0, 0, 0, NULL)
+    `);
+    stmt.run(userId);
+    return this.get(userId)!;
   },
 
   update(userId: number, updates: {
