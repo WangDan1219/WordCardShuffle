@@ -1,12 +1,16 @@
-import { lazy, Suspense } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { createBrowserRouter, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { RootLayout } from '../layouts/RootLayout';
 import { ProtectedRoute, RoleRoute } from '../components/routing';
+import { useApp } from '../contexts/AppContext';
+import ApiService from '../services/ApiService';
+import { StudyMistakesMode } from '../components/study/StudyMistakesMode';
 
 // Lazy load route components (using named exports)
 const AuthPage = lazy(() => import('../components/auth/AuthPage').then(m => ({ default: m.AuthPage })));
 const Dashboard = lazy(() => import('../components/dashboard/Dashboard').then(m => ({ default: m.Dashboard })));
+const StudyLanding = lazy(() => import('../components/study/StudyLanding').then(m => ({ default: m.StudyLanding })));
 const StudyMode = lazy(() => import('../components/study/StudyMode').then(m => ({ default: m.StudyMode })));
 const QuizMode = lazy(() => import('../components/quiz/QuizMode').then(m => ({ default: m.QuizMode })));
 const DailyChallenge = lazy(() => import('../components/challenge/DailyChallenge').then(m => ({ default: m.DailyChallenge })));
@@ -34,6 +38,46 @@ function withSuspense(Component: React.LazyExoticComponent<React.ComponentType>)
   );
 }
 
+// Wrapper for practice mistakes mode - fetches weak words and filters vocabulary
+function StudyMistakesWrapper() {
+  const { vocabulary } = useApp();
+  const navigate = useNavigate();
+  const [filteredWords, setFilteredWords] = useState<typeof vocabulary>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAndFilter = async () => {
+      try {
+        const data = await ApiService.getWeakWords();
+        const weakWordSet = new Set(data.weakWords.map(w => w.word.toLowerCase()));
+        const filtered = vocabulary.filter(v =>
+          weakWordSet.has(v.targetWord.toLowerCase())
+        );
+
+        if (filtered.length === 0) {
+          // No weak words, redirect back to study landing
+          navigate('/study');
+          return;
+        }
+
+        setFilteredWords(filtered);
+      } catch (err) {
+        console.error('Failed to fetch weak words:', err);
+        navigate('/study');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAndFilter();
+  }, [vocabulary, navigate]);
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  return <StudyMistakesMode words={filteredWords} />;
+}
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -55,7 +99,15 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: 'study',
+                element: withSuspense(StudyLanding),
+              },
+              {
+                path: 'study/all',
                 element: withSuspense(StudyMode),
+              },
+              {
+                path: 'study/mistakes',
+                element: <StudyMistakesWrapper />,
               },
               {
                 path: 'quiz',

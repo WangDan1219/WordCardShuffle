@@ -320,6 +320,18 @@ class ApiServiceClass {
     });
   }
 
+  async getWeakWords(): Promise<{
+    weakWords: Array<{
+      word: string;
+      incorrectCount: number;
+      correctCount: number;
+      totalAttempts: number;
+      accuracy: number;
+    }>;
+  }> {
+    return this.fetchWithAuth('/stats/weak-words');
+  }
+
   // Challenges endpoints
   async getTodayChallenge(): Promise<TodayChallengeResponse> {
     return this.fetchWithAuth<TodayChallengeResponse>('/challenges/today');

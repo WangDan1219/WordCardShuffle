@@ -4,7 +4,7 @@ import { ArrowLeft, X } from 'lucide-react';
 
 interface TopBarProps {
   onBack: () => void;
-  title?: string;
+  title?: ReactNode;
   rightContent?: ReactNode;
   variant?: 'back' | 'close';
 }
