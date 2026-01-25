@@ -28,7 +28,7 @@ export function Dashboard() {
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-md border-b border-primary-100 sticky top-0 z-10"
+        className="bg-white backdrop-blur-md border-b border-primary-100 sticky top-0 z-50"
       >
         <div className="max-w-xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -74,7 +74,7 @@ export function Dashboard() {
       </motion.header>
 
       {/* Main content */}
-      <main className="max-w-xl mx-auto px-4 py-6 pb-20">
+      <main className="max-w-xl mx-auto px-4 pt-4 pb-20">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
