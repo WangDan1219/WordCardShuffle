@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { db } from '../config/database';
 import bcrypt from 'bcryptjs';
 import { authMiddleware, requireRole } from '../middleware/auth';
+import { validate, resetUserPasswordSchema } from '../middleware/validate';
+import { authService } from '../services/authService';
 
 const router = Router();
 
@@ -263,6 +265,34 @@ router.post('/users', async (req, res) => {
     } catch (error) {
         console.error('Create user error:', error);
         res.status(500).json({ error: 'Failed to create user' });
+    }
+});
+
+// Reset User Password (Admin or Parent for their children)
+router.patch('/users/:id/password', requireRole(['admin', 'parent']), validate(resetUserPasswordSchema), async (req: any, res) => {
+    try {
+        const userId = Number(req.params.id);
+        const requestUser = req.user;
+        const { password } = req.body;
+
+        await authService.resetUserPassword(
+            requestUser.userId,
+            requestUser.role,
+            userId,
+            password
+        );
+
+        res.json({ success: true, message: 'Password reset successfully' });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to reset password';
+
+        if (message.includes('Unauthorized') || message.includes('only reset')) {
+            res.status(403).json({ error: 'Forbidden', message });
+        } else if (message === 'User not found') {
+            res.status(404).json({ error: 'Not Found', message });
+        } else {
+            res.status(400).json({ error: 'Bad Request', message });
+        }
     }
 });
 

@@ -5,6 +5,7 @@ import { LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from '../common';
 import { UserList } from './UserList';
 import { UserDetailModal } from './UserDetailModal';
+import { ResetStudentPasswordModal } from '../admin/ResetStudentPasswordModal';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -13,6 +14,7 @@ export function ParentDashboard() {
     const navigate = useNavigate();
     const [users, setUsers] = useState<AdminUserStats[]>([]);
     const [selectedUser, setSelectedUser] = useState<AdminUserStats | null>(null);
+    const [resetPasswordUser, setResetPasswordUser] = useState<AdminUserStats | null>(null);
     const [loading, setLoading] = useState(false);
 
     // Load users on mount
@@ -80,6 +82,7 @@ export function ParentDashboard() {
                         <UserList
                             users={users}
                             onSelectUser={setSelectedUser}
+                            onResetPassword={setResetPasswordUser}
                         />
                     )}
                 </motion.div>
@@ -91,6 +94,17 @@ export function ParentDashboard() {
                     <UserDetailModal
                         user={{ id: selectedUser.id, name: selectedUser.display_name || selectedUser.username }}
                         onClose={() => setSelectedUser(null)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Reset Password Modal */}
+            <AnimatePresence>
+                {resetPasswordUser && (
+                    <ResetStudentPasswordModal
+                        userId={resetPasswordUser.id}
+                        userName={resetPasswordUser.display_name || resetPasswordUser.username}
+                        onClose={() => setResetPasswordUser(null)}
                     />
                 )}
             </AnimatePresence>

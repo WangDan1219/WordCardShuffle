@@ -23,6 +23,10 @@ interface AuthContextType {
   state: AuthState;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, displayName?: string) => Promise<void>;
+  registerStudent: (username: string, password: string, displayName?: string) => Promise<void>;
+  registerParent: (username: string, password: string, email: string, displayName?: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   migrateLocalData: () => Promise<void>;
@@ -124,9 +128,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (username: string, password: string, displayName?: string) => {
+    return registerStudent(username, password, displayName);
+  };
+
+  const registerStudent = async (username: string, password: string, displayName?: string) => {
     dispatch({ type: 'AUTH_START' });
     try {
-      const response = await ApiService.register(username, password, displayName);
+      const response = await ApiService.registerStudent(username, password, displayName);
       dispatch({ type: 'AUTH_SUCCESS', payload: response.user });
 
       // Migrate local data after registration
@@ -135,6 +143,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({
         type: 'AUTH_FAILURE',
         payload: error instanceof Error ? error.message : 'Registration failed',
+      });
+      throw error;
+    }
+  };
+
+  const registerParent = async (username: string, password: string, email: string, displayName?: string) => {
+    dispatch({ type: 'AUTH_START' });
+    try {
+      const response = await ApiService.registerParent(username, password, email, displayName);
+      dispatch({ type: 'AUTH_SUCCESS', payload: response.user });
+
+      // Migrate local data after registration
+      await migrateLocalData();
+    } catch (error) {
+      dispatch({
+        type: 'AUTH_FAILURE',
+        payload: error instanceof Error ? error.message : 'Registration failed',
+      });
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email: string) => {
+    dispatch({ type: 'AUTH_START' });
+    try {
+      await ApiService.forgotPassword(email);
+      dispatch({ type: 'LOGOUT' }); // Reset loading state without error
+    } catch (error) {
+      dispatch({
+        type: 'AUTH_FAILURE',
+        payload: error instanceof Error ? error.message : 'Password reset request failed',
+      });
+      throw error;
+    }
+  };
+
+  const resetPassword = async (token: string, password: string) => {
+    dispatch({ type: 'AUTH_START' });
+    try {
+      await ApiService.resetPassword(token, password);
+      dispatch({ type: 'LOGOUT' }); // Reset loading state
+    } catch (error) {
+      dispatch({
+        type: 'AUTH_FAILURE',
+        payload: error instanceof Error ? error.message : 'Password reset failed',
       });
       throw error;
     }
@@ -184,6 +237,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         state,
         login,
         register,
+        registerStudent,
+        registerParent,
+        forgotPassword,
+        resetPassword,
         logout,
         clearError,
         migrateLocalData,

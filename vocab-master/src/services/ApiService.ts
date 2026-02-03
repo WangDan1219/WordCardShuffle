@@ -12,6 +12,8 @@ export interface User {
   username: string;
   displayName: string | null;
   role: 'student' | 'parent' | 'admin';
+  email: string | null;
+  emailVerified: boolean;
   createdAt: string;
 }
 
@@ -217,8 +219,15 @@ class ApiServiceClass {
   }
 
   // Auth endpoints
+  /**
+   * @deprecated Use registerStudent or registerParent instead
+   */
   async register(username: string, password: string, displayName?: string): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    return this.registerStudent(username, password, displayName);
+  }
+
+  async registerStudent(username: string, password: string, displayName?: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/register/student`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, displayName }),
@@ -235,6 +244,79 @@ class ApiServiceClass {
     const data: AuthResponse = await response.json();
     this.setTokens(data.tokens);
     return data;
+  }
+
+  async registerParent(username: string, password: string, email: string, displayName?: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE_URL}/auth/register/parent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, email, displayName }),
+    });
+
+    if (!response.ok) {
+      const errorData: ApiError = await response.json().catch(() => ({
+        error: 'Unknown Error',
+        message: 'Registration failed'
+      }));
+      throw new Error(errorData.message);
+    }
+
+    const data: AuthResponse = await response.json();
+    this.setTokens(data.tokens);
+    return data;
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errorData: ApiError = await response.json().catch(() => ({
+        error: 'Unknown Error',
+        message: 'Password reset request failed'
+      }));
+      throw new Error(errorData.message);
+    }
+
+    return response.json();
+  }
+
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, password }),
+    });
+
+    if (!response.ok) {
+      const errorData: ApiError = await response.json().catch(() => ({
+        error: 'Unknown Error',
+        message: 'Password reset failed'
+      }));
+      throw new Error(errorData.message);
+    }
+
+    return response.json();
+  }
+
+  async validateResetToken(token: string): Promise<{ valid: boolean }> {
+    const response = await fetch(`${API_BASE_URL}/auth/validate-reset-token/${token}`);
+
+    if (!response.ok) {
+      return { valid: false };
+    }
+
+    return response.json();
+  }
+
+  async resetUserPassword(userId: number, password: string): Promise<{ success: boolean; message: string }> {
+    return this.fetchWithAuth<{ success: boolean; message: string }>(`/admin/users/${userId}/password`, {
+      method: 'PATCH',
+      body: JSON.stringify({ password }),
+    });
   }
 
   async login(username: string, password: string): Promise<AuthResponse> {

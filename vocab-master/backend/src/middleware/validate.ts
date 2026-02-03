@@ -34,6 +34,61 @@ export const registerSchema = z.object({
     .optional()
 });
 
+// Student registration - same as base register (no email)
+export const registerStudentSchema = z.object({
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must be at most 100 characters'),
+  displayName: z.string()
+    .min(1)
+    .max(50)
+    .optional()
+});
+
+// Parent registration - requires email
+export const registerParentSchema = z.object({
+  username: z.string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username must be at most 30 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must be at most 100 characters'),
+  email: z.string()
+    .email('Invalid email address')
+    .max(255, 'Email must be at most 255 characters'),
+  displayName: z.string()
+    .min(1)
+    .max(50)
+    .optional()
+});
+
+// Forgot password - just email
+export const forgotPasswordSchema = z.object({
+  email: z.string()
+    .email('Invalid email address')
+});
+
+// Reset password - token and new password
+export const resetPasswordSchema = z.object({
+  token: z.string()
+    .min(1, 'Reset token is required'),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must be at most 100 characters')
+});
+
+// Admin/Parent reset user password
+export const resetUserPasswordSchema = z.object({
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must be at most 100 characters')
+});
+
 export const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
   password: z.string().min(1, 'Password is required')

@@ -8,6 +8,17 @@ export interface UserRow {
   display_name: string | null;
   role: 'student' | 'parent' | 'admin';
   parent_id: number | null;
+  email: string | null;
+  email_verified: number; // SQLite stores booleans as integers
+  created_at: string;
+}
+
+export interface PasswordResetTokenRow {
+  id: number;
+  user_id: number;
+  token_hash: string;
+  expires_at: string;
+  used_at: string | null;
   created_at: string;
 }
 
@@ -89,6 +100,8 @@ export interface User {
   username: string;
   displayName: string | null;
   role: 'student' | 'parent' | 'admin';
+  email: string | null;
+  emailVerified: boolean;
   createdAt: string;
 }
 
@@ -134,6 +147,28 @@ export interface RegisterRequest {
   username: string;
   password: string;
   displayName?: string;
+}
+
+export interface RegisterStudentRequest {
+  username: string;
+  password: string;
+  displayName?: string;
+}
+
+export interface RegisterParentRequest {
+  username: string;
+  password: string;
+  email: string;
+  displayName?: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
 }
 
 export interface LoginRequest {

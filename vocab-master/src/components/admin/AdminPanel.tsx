@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Plus, Edit, Trash2, LogOut } from 'lucide-react';
+import { Shield, Plus, Edit, Trash2, LogOut, KeyRound } from 'lucide-react';
 import { Button } from '../common';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { EditUserModal } from './EditUserModal';
 import { AddUserModal } from './AddUserModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { ResetStudentPasswordModal } from './ResetStudentPasswordModal';
 
 export function AdminPanel() {
     const { logout } = useAuth();
@@ -16,6 +17,7 @@ export function AdminPanel() {
     const [editingUser, setEditingUser] = useState<AdminUserStats | null>(null);
     const [showAddUser, setShowAddUser] = useState(false);
     const [deletingUser, setDeletingUser] = useState<AdminUserStats | null>(null);
+    const [resetPasswordUser, setResetPasswordUser] = useState<AdminUserStats | null>(null);
 
     useEffect(() => {
         loadUsers();
@@ -128,13 +130,22 @@ export function AdminPanel() {
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button
                                                 onClick={() => setEditingUser(user)}
-                                                className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                                className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                                title="Edit User"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </button>
                                             <button
+                                                onClick={() => setResetPasswordUser(user)}
+                                                className="text-amber-600 hover:text-amber-900 mr-3"
+                                                title="Reset Password"
+                                            >
+                                                <KeyRound className="w-4 h-4" />
+                                            </button>
+                                            <button
                                                 onClick={() => setDeletingUser(user)}
                                                 className="text-red-600 hover:text-red-900 cursor-pointer"
+                                                title="Delete User"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -173,6 +184,15 @@ export function AdminPanel() {
                     userRole={deletingUser.role}
                     onConfirm={handleDeleteUser}
                     onClose={() => setDeletingUser(null)}
+                />
+            )}
+
+            {/* Reset Password Modal */}
+            {resetPasswordUser && (
+                <ResetStudentPasswordModal
+                    userId={resetPasswordUser.id}
+                    userName={resetPasswordUser.display_name || resetPasswordUser.username}
+                    onClose={() => setResetPasswordUser(null)}
                 />
             )}
         </div>

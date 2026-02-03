@@ -48,6 +48,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
+// Stricter rate limiting for password reset
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 requests per hour
+  message: { error: 'Too Many Requests', message: 'Too many password reset attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // General rate limiter
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -58,6 +67,8 @@ const generalLimiter = rateLimit({
 });
 
 app.use('/api/auth', authLimiter);
+app.use('/api/auth/forgot-password', passwordResetLimiter);
+app.use('/api/auth/reset-password', passwordResetLimiter);
 app.use('/api', generalLimiter);
 
 // Routes

@@ -1,12 +1,29 @@
 import { Router, Response } from 'express';
 import { authService } from '../services/authService.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { validate, registerSchema, loginSchema, refreshSchema } from '../middleware/validate.js';
-import type { AuthRequest, RegisterRequest, LoginRequest } from '../types/index.js';
+import {
+  validate,
+  registerSchema,
+  registerStudentSchema,
+  registerParentSchema,
+  loginSchema,
+  refreshSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema
+} from '../middleware/validate.js';
+import type {
+  AuthRequest,
+  RegisterRequest,
+  LoginRequest,
+  RegisterStudentRequest,
+  RegisterParentRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest
+} from '../types/index.js';
 
 const router = Router();
 
-// POST /api/auth/register
+// POST /api/auth/register (legacy - creates student)
 router.post('/register', validate(registerSchema), async (req: AuthRequest, res: Response) => {
   try {
     const { username, password, displayName } = req.body as RegisterRequest;
@@ -24,6 +41,95 @@ router.post('/register', validate(registerSchema), async (req: AuthRequest, res:
     } else {
       res.status(400).json({ error: 'Bad Request', message });
     }
+  }
+});
+
+// POST /api/auth/register/student - Student registration (no email)
+router.post('/register/student', validate(registerStudentSchema), async (req: AuthRequest, res: Response) => {
+  try {
+    const { username, password, displayName } = req.body as RegisterStudentRequest;
+    const result = await authService.registerStudent(username, password, displayName);
+
+    res.status(201).json({
+      user: result.user,
+      tokens: result.tokens
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Registration failed';
+
+    if (message === 'Username already taken') {
+      res.status(409).json({ error: 'Conflict', message });
+    } else {
+      res.status(400).json({ error: 'Bad Request', message });
+    }
+  }
+});
+
+// POST /api/auth/register/parent - Parent registration (email required)
+router.post('/register/parent', validate(registerParentSchema), async (req: AuthRequest, res: Response) => {
+  try {
+    const { username, password, email, displayName } = req.body as RegisterParentRequest;
+    const result = await authService.registerParent(username, password, email, displayName);
+
+    res.status(201).json({
+      user: result.user,
+      tokens: result.tokens
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Registration failed';
+
+    if (message === 'Username already taken' || message === 'Email already registered') {
+      res.status(409).json({ error: 'Conflict', message });
+    } else {
+      res.status(400).json({ error: 'Bad Request', message });
+    }
+  }
+});
+
+// POST /api/auth/forgot-password - Request password reset
+router.post('/forgot-password', validate(forgotPasswordSchema), async (req: AuthRequest, res: Response) => {
+  try {
+    const { email } = req.body as ForgotPasswordRequest;
+
+    // Always succeed to prevent email enumeration
+    await authService.requestPasswordReset(email);
+
+    res.json({
+      message: 'If an account exists with this email, a password reset link has been sent.'
+    });
+  } catch (error) {
+    // Log but don't expose errors
+    console.error('[Auth] Password reset error:', error);
+    res.json({
+      message: 'If an account exists with this email, a password reset link has been sent.'
+    });
+  }
+});
+
+// POST /api/auth/reset-password - Reset password with token
+router.post('/reset-password', validate(resetPasswordSchema), async (req: AuthRequest, res: Response) => {
+  try {
+    const { token, password } = req.body as ResetPasswordRequest;
+    await authService.resetPassword(token, password);
+
+    res.json({
+      message: 'Password has been reset successfully. You can now log in with your new password.'
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Password reset failed';
+    res.status(400).json({ error: 'Bad Request', message });
+  }
+});
+
+// GET /api/auth/validate-reset-token/:token - Check if token is valid
+router.get('/validate-reset-token/:token', async (req: AuthRequest, res: Response) => {
+  try {
+    const token = req.params.token as string;
+    const isValid = await authService.validateResetToken(token);
+
+    res.json({ valid: isValid });
+  } catch {
+    res.json({ valid: false });
   }
 });
 

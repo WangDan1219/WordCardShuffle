@@ -4,9 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginForm } from './LoginForm';
-import { RegisterForm } from './RegisterForm';
+import { RoleSelection } from './RoleSelection';
+import { StudentRegisterForm } from './StudentRegisterForm';
+import { ParentRegisterForm } from './ParentRegisterForm';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register-select-role' | 'register-student' | 'register-parent' | 'forgot-password';
 
 interface LocationState {
   from?: {
@@ -16,7 +19,7 @@ interface LocationState {
 
 export function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('login');
-  const { state, login, register, clearError } = useAuth();
+  const { state, login, registerStudent, registerParent, forgotPassword, clearError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -52,13 +55,39 @@ export function AuthPage() {
     await login(username, password);
   };
 
-  const handleRegister = async (username: string, password: string, displayName?: string) => {
-    await register(username, password, displayName);
+  const handleRegisterStudent = async (username: string, password: string, displayName?: string) => {
+    await registerStudent(username, password, displayName);
+  };
+
+  const handleRegisterParent = async (username: string, password: string, email: string, displayName?: string) => {
+    await registerParent(username, password, email, displayName);
+  };
+
+  const handleForgotPassword = async (email: string) => {
+    await forgotPassword(email);
   };
 
   const switchMode = (newMode: AuthMode) => {
     clearError();
     setMode(newMode);
+  };
+
+  // Get subtitle based on mode
+  const getSubtitle = () => {
+    switch (mode) {
+      case 'login':
+        return 'Welcome back, superstar!';
+      case 'register-select-role':
+        return 'Join the fun!';
+      case 'register-student':
+        return 'Time to learn!';
+      case 'register-parent':
+        return 'Track progress!';
+      case 'forgot-password':
+        return "We'll help you out!";
+      default:
+        return '';
+    }
   };
 
   return (
@@ -82,9 +111,7 @@ export function AuthPage() {
             Vocabulary Master
           </h1>
           <p className="text-indigo-100 font-medium text-lg">
-            {mode === 'login'
-              ? 'Welcome back, superstar! 🌟'
-              : 'Join the fun! 🚀'}
+            {getSubtitle()}
           </p>
         </div>
 
@@ -98,22 +125,51 @@ export function AuthPage() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={mode}
-                initial={{ opacity: 0, x: mode === 'login' ? -20 : 20 }}
+                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: mode === 'login' ? 20 : -20 }}
+                exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                {mode === 'login' ? (
+                {mode === 'login' && (
                   <LoginForm
                     onSubmit={handleLogin}
-                    onSwitchToRegister={() => switchMode('register')}
+                    onSwitchToRegister={() => switchMode('register-select-role')}
+                    onForgotPassword={() => switchMode('forgot-password')}
                     isLoading={state.isLoading}
                     error={state.error}
                   />
-                ) : (
-                  <RegisterForm
-                    onSubmit={handleRegister}
-                    onSwitchToLogin={() => switchMode('login')}
+                )}
+
+                {mode === 'register-select-role' && (
+                  <RoleSelection
+                    onSelectStudent={() => switchMode('register-student')}
+                    onSelectParent={() => switchMode('register-parent')}
+                    onBack={() => switchMode('login')}
+                  />
+                )}
+
+                {mode === 'register-student' && (
+                  <StudentRegisterForm
+                    onSubmit={handleRegisterStudent}
+                    onBack={() => switchMode('register-select-role')}
+                    isLoading={state.isLoading}
+                    error={state.error}
+                  />
+                )}
+
+                {mode === 'register-parent' && (
+                  <ParentRegisterForm
+                    onSubmit={handleRegisterParent}
+                    onBack={() => switchMode('register-select-role')}
+                    isLoading={state.isLoading}
+                    error={state.error}
+                  />
+                )}
+
+                {mode === 'forgot-password' && (
+                  <ForgotPasswordForm
+                    onSubmit={handleForgotPassword}
+                    onBack={() => switchMode('login')}
                     isLoading={state.isLoading}
                     error={state.error}
                   />

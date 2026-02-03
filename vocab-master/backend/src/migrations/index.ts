@@ -3,6 +3,7 @@ import { seedAdmin } from './002_seed_admin';
 import { fixAdminRole } from './003_fix_admin_role';
 import { updateUsersSchema } from './004_update_users_schema';
 import { repairFks } from './005_repair_fks';
+import { addEmailAndPasswordReset } from './006_add_email_and_password_reset';
 
 export const migrations = [
     initialSchema,
@@ -10,4 +11,5 @@ export const migrations = [
     fixAdminRole,
     updateUsersSchema,
     repairFks,
+    addEmailAndPasswordReset,
 ];

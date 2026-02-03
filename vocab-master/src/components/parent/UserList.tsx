@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Trophy, Clock, Flame, Calendar } from 'lucide-react';
+import { BookOpen, Trophy, Clock, Flame, Calendar, KeyRound } from 'lucide-react';
 import type { AdminUserStats } from '../../services/ApiService';
 
 interface UserListProps {
     users: AdminUserStats[];
     onSelectUser: (user: AdminUserStats) => void;
+    onResetPassword?: (user: AdminUserStats) => void;
 }
 
-export function UserList({ users, onSelectUser }: UserListProps) {
+export function UserList({ users, onSelectUser, onResetPassword }: UserListProps) {
     if (users.length === 0) {
         return <div className="text-center text-gray-500 py-8">No users found.</div>;
     }
@@ -37,6 +38,18 @@ export function UserList({ users, onSelectUser }: UserListProps) {
                                 </p>
                             </div>
                         </div>
+                        {onResetPassword && user.role === 'student' && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onResetPassword(user);
+                                }}
+                                className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                title="Reset Password"
+                            >
+                                <KeyRound className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">

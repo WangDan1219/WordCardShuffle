@@ -9,6 +9,7 @@ import { StudyMistakesMode } from '../components/study/StudyMistakesMode';
 
 // Lazy load route components (using named exports)
 const AuthPage = lazy(() => import('../components/auth/AuthPage').then(m => ({ default: m.AuthPage })));
+const ResetPasswordPage = lazy(() => import('../components/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const Dashboard = lazy(() => import('../components/dashboard/Dashboard').then(m => ({ default: m.Dashboard })));
 const StudyLanding = lazy(() => import('../components/study/StudyLanding').then(m => ({ default: m.StudyLanding })));
 const StudyMode = lazy(() => import('../components/study/StudyMode').then(m => ({ default: m.StudyMode })));
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: withSuspense(AuthPage),
+  },
+  {
+    path: '/reset-password',
+    element: withSuspense(ResetPasswordPage),
   },
   {
     path: '/',

@@ -35,6 +35,79 @@ export const userRepository = {
     return stmt.get(username) as UserRow | undefined;
   },
 
+  findByEmail(email: string): UserRow | undefined {
+    const stmt = db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE');
+    return stmt.get(email) as UserRow | undefined;
+  },
+
+  /**
+   * Create a student account (no email required)
+   */
+  createStudent(username: string, passwordHash: string, displayName?: string): UserRow {
+    const stmt = db.prepare(`
+      INSERT INTO users (username, password_hash, display_name, role)
+      VALUES (?, ?, ?, 'student')
+    `);
+
+    const result = stmt.run(username, passwordHash, displayName || null);
+    const userId = result.lastInsertRowid as number;
+
+    // Create default settings and stats
+    db.prepare(`
+      INSERT INTO user_settings (user_id, sound_enabled, auto_advance)
+      VALUES (?, 1, 0)
+    `).run(userId);
+
+    db.prepare(`
+      INSERT INTO user_stats (user_id, total_words_studied, quizzes_taken, challenges_completed, best_challenge_score, last_study_date)
+      VALUES (?, 0, 0, 0, 0, NULL)
+    `).run(userId);
+
+    return this.findById(userId)!;
+  },
+
+  /**
+   * Create a parent account (email required)
+   */
+  createParent(username: string, passwordHash: string, email: string, displayName?: string): UserRow {
+    const stmt = db.prepare(`
+      INSERT INTO users (username, password_hash, display_name, role, email, email_verified)
+      VALUES (?, ?, ?, 'parent', ?, 0)
+    `);
+
+    const result = stmt.run(username, passwordHash, displayName || null, email.toLowerCase());
+    const userId = result.lastInsertRowid as number;
+
+    // Create default settings and stats
+    db.prepare(`
+      INSERT INTO user_settings (user_id, sound_enabled, auto_advance)
+      VALUES (?, 1, 0)
+    `).run(userId);
+
+    db.prepare(`
+      INSERT INTO user_stats (user_id, total_words_studied, quizzes_taken, challenges_completed, best_challenge_score, last_study_date)
+      VALUES (?, 0, 0, 0, 0, NULL)
+    `).run(userId);
+
+    return this.findById(userId)!;
+  },
+
+  /**
+   * Update a user's password
+   */
+  updatePassword(userId: number, passwordHash: string): void {
+    const stmt = db.prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+    stmt.run(passwordHash, userId);
+  },
+
+  /**
+   * Set email verified status
+   */
+  setEmailVerified(userId: number, verified: boolean): void {
+    const stmt = db.prepare('UPDATE users SET email_verified = ? WHERE id = ?');
+    stmt.run(verified ? 1 : 0, userId);
+  },
+
   updateDisplayName(userId: number, displayName: string): void {
     const stmt = db.prepare('UPDATE users SET display_name = ? WHERE id = ?');
     stmt.run(displayName, userId);

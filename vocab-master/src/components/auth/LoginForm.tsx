@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Loader2, KeyRound } from 'lucide-react';
 
 interface LoginFormProps {
   onSubmit: (username: string, password: string) => Promise<void>;
   onSwitchToRegister: () => void;
+  onForgotPassword?: () => void;
   isLoading: boolean;
   error: string | null;
 }
 
-export function LoginForm({ onSubmit, onSwitchToRegister, isLoading, error }: LoginFormProps) {
+export function LoginForm({ onSubmit, onSwitchToRegister, onForgotPassword, isLoading, error }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -88,16 +89,29 @@ export function LoginForm({ onSubmit, onSwitchToRegister, isLoading, error }: Lo
         )}
       </button>
 
-      <div className="text-center">
-        <span className="text-gray-400">Don't have an account? </span>
-        <button
-          type="button"
-          onClick={onSwitchToRegister}
-          className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
-          disabled={isLoading}
-        >
-          Create one
-        </button>
+      <div className="flex flex-col items-center gap-3">
+        <div>
+          <span className="text-gray-400">Don't have an account? </span>
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            disabled={isLoading}
+          >
+            Create one
+          </button>
+        </div>
+        {onForgotPassword && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-300 text-sm transition-colors"
+            disabled={isLoading}
+          >
+            <KeyRound size={14} />
+            Forgot password?
+          </button>
+        )}
       </div>
     </form>
   );

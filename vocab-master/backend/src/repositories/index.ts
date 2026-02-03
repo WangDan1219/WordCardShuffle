@@ -1,3 +1,4 @@
 export { userRepository, settingsRepository, statsRepository } from './userRepository.js';
 export { challengeRepository } from './challengeRepository.js';
 export { tokenRepository } from './tokenRepository.js';
+export { passwordResetRepository } from './passwordResetRepository.js';
