@@ -15,7 +15,9 @@ export const addEmailAndPasswordReset: Migration = {
       // Add email column if not exists
       if (!hasEmail) {
         console.log('[Migration 006] Adding email column to users table...');
-        db.prepare('ALTER TABLE users ADD COLUMN email TEXT UNIQUE').run();
+        db.prepare('ALTER TABLE users ADD COLUMN email TEXT').run();
+        console.log('[Migration 006] Creating unique index on email column...');
+        db.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)').run();
       }
 
       // Add email_verified column if not exists
