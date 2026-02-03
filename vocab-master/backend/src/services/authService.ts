@@ -100,6 +100,11 @@ export const authService = {
     // Generate tokens
     const tokens = this.generateTokens(user.id, user.username, user.role);
 
+    // Send welcome email (don't await - fire and forget)
+    emailService.sendWelcomeEmail(email, displayName).catch(err => {
+      console.error('[AuthService] Failed to send welcome email:', err);
+    });
+
     return { user, tokens };
   },
 

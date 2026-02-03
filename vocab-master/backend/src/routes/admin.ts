@@ -79,7 +79,7 @@ router.get('/users', requireRole(['admin', 'parent']), (req: any, res) => {
         const user = req.user;
         let query = `
       SELECT
-        u.id, u.username, u.display_name, u.role, u.parent_id, u.created_at,
+        u.id, u.username, u.display_name, u.role, u.parent_id, u.email, u.created_at,
         us.quizzes_taken, us.total_words_studied, us.last_study_date,
         (SELECT AVG(correct_answers * 100.0 / total_questions)
          FROM quiz_results WHERE user_id = u.id AND total_questions > 0) as avg_accuracy

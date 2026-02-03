@@ -102,6 +102,7 @@ export interface AdminUserStats {
   display_name: string | null;
   role: 'student' | 'parent' | 'admin';
   parent_id: number | null;
+  email: string | null;
   created_at: string;
   quizzes_taken: number;
   total_words_studied: number;

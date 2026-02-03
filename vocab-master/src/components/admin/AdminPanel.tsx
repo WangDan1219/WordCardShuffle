@@ -109,6 +109,9 @@ export function AdminPanel() {
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900">{user.display_name || user.username}</div>
                                                     <div className="text-sm text-gray-500">@{user.username}</div>
+                                                    {user.email && (
+                                                        <div className="text-xs text-gray-400">{user.email}</div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>

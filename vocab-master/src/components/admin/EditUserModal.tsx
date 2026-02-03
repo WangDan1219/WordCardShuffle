@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Save, Shield, User, GraduationCap } from 'lucide-react';
+import { X, Save, Shield, User, GraduationCap, Mail } from 'lucide-react';
 import { Button } from '../common';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
 
@@ -57,6 +57,16 @@ export function EditUserModal({ user, allUsers, onClose, onSave }: EditUserModal
                         <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                         <div className="text-gray-900 font-semibold">{user.username}</div>
                     </div>
+
+                    {user.email && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <div className="flex items-center gap-2 text-gray-900">
+                                <Mail className="w-4 h-4 text-gray-400" />
+                                <span>{user.email}</span>
+                            </div>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
