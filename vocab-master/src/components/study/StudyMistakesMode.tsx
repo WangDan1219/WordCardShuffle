@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, RotateCcw, AlertCircle } from 'lucide-react'
 import { TopBar } from '../layout/TopBar';
 import { ProgressBar } from '../common';
 import { UserMenu } from '../common/UserMenu';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { FlashCard } from './FlashCard';
 import { useApp } from '../../contexts/AppContext';
 import { useStudyMode } from '../../hooks/useStudyMode';
@@ -134,6 +135,7 @@ export function StudyMistakesMode({ words }: StudyMistakesModeProps) {
             >
               <RotateCcw className="w-5 h-5 text-gray-600" />
             </button>
+            <NotificationBell />
             <UserMenu />
           </div>
         }

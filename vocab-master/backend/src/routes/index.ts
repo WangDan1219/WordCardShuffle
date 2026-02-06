@@ -6,3 +6,5 @@ export { default as migrateRoutes } from './migrate';
 export { default as quizResultsRoutes } from './quizResults';
 export { default as studyStatsRoutes } from './studyStats';
 export { default as adminRoutes } from './admin';
+export { default as notificationsRoutes } from './notifications';
+export { default as linkRequestsRoutes } from './linkRequests';

@@ -5,6 +5,7 @@ import { Flame, Trophy } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
 import { UserMenu } from '../common/UserMenu';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { MultiSelectQuestion } from './MultiSelectQuestion';
 import { ChallengeResults } from './ChallengeResults';
 import { StreakMilestone } from './StreakMilestone';
@@ -327,6 +328,7 @@ export function DailyChallenge() {
               onWarning={playWarning}
             />
 
+            <NotificationBell />
             <UserMenu />
           </div>
         }

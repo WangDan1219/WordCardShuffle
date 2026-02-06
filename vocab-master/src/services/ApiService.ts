@@ -118,6 +118,55 @@ export interface AdminUserDetails {
   weakWords: any[];
 }
 
+// Notification types
+export type NotificationType = 'link_request' | 'link_accepted' | 'link_rejected' | 'achievement' | 'reminder';
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data: Record<string, unknown> | null;
+  readAt: string | null;
+  actedAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  unreadCount: number;
+}
+
+export interface NotificationCountResponse {
+  count: number;
+}
+
+// Link request types
+export type LinkRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+
+export interface LinkRequest {
+  id: number;
+  parentId: number;
+  studentId: number;
+  status: LinkRequestStatus;
+  notificationId: number | null;
+  message: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+  parentUsername?: string;
+  parentDisplayName?: string | null;
+  studentUsername?: string;
+  studentDisplayName?: string | null;
+}
+
+export interface StudentSearchResult {
+  id: number;
+  username: string;
+  displayName: string | null;
+  status: 'available' | 'pending';
+}
+
 class ApiServiceClass {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -502,15 +551,74 @@ class ApiServiceClass {
     });
   }
 
-  async createUser(data: { username: string; password: string; role: string; parentId: number | null }): Promise<void> {
+  async createUser(data: { username: string; password: string; role: string; parentId: number | null; email?: string }): Promise<void> {
     return this.fetchWithAuth<void>('/admin/users', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   }
 
+  async updateUserEmail(userId: number, email: string | null): Promise<void> {
+    return this.fetchWithAuth<void>(`/admin/users/${userId}/email`, {
+      method: 'PATCH',
+      body: JSON.stringify({ email })
+    });
+  }
+
   async deleteUser(userId: number): Promise<{ success: boolean; message: string }> {
     return this.fetchWithAuth<{ success: boolean; message: string }>(`/admin/users/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // Notification methods
+  async getNotifications(): Promise<NotificationsResponse> {
+    return this.fetchWithAuth<NotificationsResponse>('/notifications');
+  }
+
+  async getNotificationCount(): Promise<NotificationCountResponse> {
+    return this.fetchWithAuth<NotificationCountResponse>('/notifications/count');
+  }
+
+  async markNotificationRead(id: number): Promise<{ success: boolean }> {
+    return this.fetchWithAuth<{ success: boolean }>(`/notifications/${id}/read`, {
+      method: 'PATCH'
+    });
+  }
+
+  async markAllNotificationsRead(): Promise<{ success: boolean; markedCount: number }> {
+    return this.fetchWithAuth<{ success: boolean; markedCount: number }>('/notifications/read-all', {
+      method: 'POST'
+    });
+  }
+
+  // Link request methods
+  async searchStudents(query: string): Promise<{ results: StudentSearchResult[] }> {
+    return this.fetchWithAuth<{ results: StudentSearchResult[] }>(
+      `/link-requests/search?q=${encodeURIComponent(query)}`
+    );
+  }
+
+  async sendLinkRequest(studentId: number, message?: string): Promise<{ success: boolean; request: LinkRequest }> {
+    return this.fetchWithAuth<{ success: boolean; request: LinkRequest }>('/link-requests', {
+      method: 'POST',
+      body: JSON.stringify({ studentId, message })
+    });
+  }
+
+  async getLinkRequests(): Promise<{ requests: LinkRequest[] }> {
+    return this.fetchWithAuth<{ requests: LinkRequest[] }>('/link-requests');
+  }
+
+  async respondToLinkRequest(id: number, action: 'accept' | 'reject'): Promise<{ success: boolean; message: string }> {
+    return this.fetchWithAuth<{ success: boolean; message: string }>(`/link-requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action })
+    });
+  }
+
+  async cancelLinkRequest(id: number): Promise<{ success: boolean; message: string }> {
+    return this.fetchWithAuth<{ success: boolean; message: string }>(`/link-requests/${id}`, {
       method: 'DELETE'
     });
   }

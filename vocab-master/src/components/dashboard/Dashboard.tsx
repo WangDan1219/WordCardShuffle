@@ -4,8 +4,11 @@ import { motion } from 'framer-motion';
 import { BookOpen, Brain, Trophy, Volume2, VolumeX, Flame } from 'lucide-react';
 import { ModeCard } from './ModeCard';
 import { UserMenu } from '../common/UserMenu';
+import { NotificationBell } from '../notifications/NotificationBell';
+import { LinkRequestCard } from '../linking/LinkRequestCard';
 import { useApp } from '../../contexts/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { useAudio } from '../../hooks/useAudio';
 import { StorageService } from '../../services/StorageService';
 import ApiService from '../../services/ApiService';
@@ -23,6 +26,7 @@ export function Dashboard() {
   const { vocabulary } = useApp();
   const { state: authState } = useAuth();
   const { soundEnabled, toggleSound, playClick } = useAudio();
+  const { linkRequests, respondToLinkRequest } = useNotifications();
   const navigate = useNavigate();
 
   const hasTodayChallenge = StorageService.hasTodayChallenge();
@@ -89,6 +93,7 @@ export function Dashboard() {
                 )}
               </button>
 
+              <NotificationBell />
               <UserMenu />
             </div>
           </div>
@@ -138,6 +143,22 @@ export function Dashboard() {
           ) : (
             // Student Content
             <>
+              {/* Pending Link Requests Banner */}
+              {linkRequests.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-primary-600 uppercase tracking-wide">
+                    Pending Link Requests
+                  </h3>
+                  {linkRequests.map(request => (
+                    <LinkRequestCard
+                      key={request.id}
+                      request={request}
+                      onAccept={(id) => respondToLinkRequest(id, 'accept')}
+                      onReject={(id) => respondToLinkRequest(id, 'reject')}
+                    />
+                  ))}
+                </div>
+              )}
               {/* Study Mode */}
               <ModeCard
                 title="Study Mode"

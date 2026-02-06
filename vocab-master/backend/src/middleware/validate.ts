@@ -130,3 +130,19 @@ export const importDataSchema = z.object({
     lastStudyDate: z.string().nullable()
   }).optional()
 });
+
+// Link request schemas
+export const createLinkRequestSchema = z.object({
+  studentId: z.number().int().positive('Student ID is required'),
+  message: z.string().max(500, 'Message must be at most 500 characters').optional()
+});
+
+export const linkRequestActionSchema = z.object({
+  action: z.enum(['accept', 'reject'], {
+    errorMap: () => ({ message: 'Action must be either "accept" or "reject"' })
+  })
+});
+
+export const studentSearchSchema = z.object({
+  q: z.string().min(2, 'Search query must be at least 2 characters')
+});

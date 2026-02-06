@@ -203,3 +203,85 @@ export interface ErrorResponse {
   error: string;
   message: string;
 }
+
+// Notification types
+export type NotificationType = 'link_request' | 'link_accepted' | 'link_rejected' | 'achievement' | 'reminder';
+
+export interface NotificationRow {
+  id: number;
+  user_id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data: string | null;
+  read_at: string | null;
+  acted_at: string | null;
+  created_at: string;
+}
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data: Record<string, unknown> | null;
+  readAt: string | null;
+  actedAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  unreadCount: number;
+}
+
+export interface NotificationCountResponse {
+  count: number;
+}
+
+// Link request types
+export type LinkRequestStatus = 'pending' | 'accepted' | 'rejected' | 'cancelled';
+
+export interface LinkRequestRow {
+  id: number;
+  parent_id: number;
+  student_id: number;
+  status: LinkRequestStatus;
+  notification_id: number | null;
+  message: string | null;
+  responded_at: string | null;
+  created_at: string;
+}
+
+export interface LinkRequest {
+  id: number;
+  parentId: number;
+  studentId: number;
+  status: LinkRequestStatus;
+  notificationId: number | null;
+  message: string | null;
+  respondedAt: string | null;
+  createdAt: string;
+  // Joined fields
+  parentUsername?: string;
+  parentDisplayName?: string | null;
+  studentUsername?: string;
+  studentDisplayName?: string | null;
+}
+
+export interface StudentSearchResult {
+  id: number;
+  username: string;
+  displayName: string | null;
+  status: 'available' | 'pending';
+}
+
+export interface CreateLinkRequestRequest {
+  studentId: number;
+  message?: string;
+}
+
+export interface LinkRequestActionRequest {
+  action: 'accept' | 'reject';
+}

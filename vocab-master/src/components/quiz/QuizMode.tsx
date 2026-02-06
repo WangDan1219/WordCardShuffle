@@ -5,6 +5,7 @@ import { TopBar } from '../layout/TopBar';
 import { Timer, ProgressBar, Button } from '../common';
 import { QuizSetup } from './QuizSetup';
 import { UserMenu } from '../common/UserMenu';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { QuestionCard } from './QuestionCard';
 import { QuizResults } from './QuizResults';
 import { useApp } from '../../contexts/AppContext';
@@ -192,6 +193,7 @@ export function QuizMode() {
                   <span className="text-sm text-gray-500 font-medium">No time limit</span>
                 )
               )}
+              <NotificationBell />
               <UserMenu />
             </div>
           }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
 import { TopBar } from '../layout/TopBar';
 import { UserMenu } from '../common/UserMenu';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { useAudio } from '../../hooks/useAudio';
 import ApiService from '../../services/ApiService';
 
@@ -55,7 +56,7 @@ export function StudyLanding() {
       <TopBar
         onBack={handleBack}
         title="Study Mode"
-        rightContent={<UserMenu />}
+        rightContent={<><NotificationBell /><UserMenu /></>}
       />
 
       <main className="max-w-lg mx-auto px-4 py-8">

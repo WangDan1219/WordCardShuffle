@@ -2,3 +2,5 @@ export { userRepository, settingsRepository, statsRepository } from './userRepos
 export { challengeRepository } from './challengeRepository.js';
 export { tokenRepository } from './tokenRepository.js';
 export { passwordResetRepository } from './passwordResetRepository.js';
+export { notificationRepository } from './notificationRepository.js';
+export { linkRequestRepository } from './linkRequestRepository.js';

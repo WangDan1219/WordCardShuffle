@@ -10,7 +10,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { initializeDatabase, closeDatabase } from './config/database.js';
-import { authRoutes, settingsRoutes, statsRoutes, challengesRoutes, migrateRoutes, quizResultsRoutes, studyStatsRoutes, adminRoutes } from './routes/index.js';
+import { authRoutes, settingsRoutes, statsRoutes, challengesRoutes, migrateRoutes, quizResultsRoutes, studyStatsRoutes, adminRoutes, notificationsRoutes, linkRequestsRoutes } from './routes/index.js';
 import { authService } from './services/authService.js';
 
 const app = express();
@@ -66,9 +66,29 @@ const generalLimiter = rateLimit({
   legacyHeaders: false
 });
 
+// Student search rate limiter
+const studentSearchLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 requests per minute
+  message: { error: 'Too Many Requests', message: 'Too many search requests, please slow down' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Link request creation rate limiter
+const linkRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 requests per hour
+  message: { error: 'Too Many Requests', message: 'Too many link requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 app.use('/api/auth', authLimiter);
 app.use('/api/auth/forgot-password', passwordResetLimiter);
 app.use('/api/auth/reset-password', passwordResetLimiter);
+app.use('/api/link-requests/search', studentSearchLimiter);
+app.use('/api/link-requests', linkRequestLimiter);
 app.use('/api', generalLimiter);
 
 // Routes
@@ -80,6 +100,8 @@ app.use('/api/migrate', migrateRoutes);
 app.use('/api/quiz-results', quizResultsRoutes);
 app.use('/api/study-stats', studyStatsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/link-requests', linkRequestsRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

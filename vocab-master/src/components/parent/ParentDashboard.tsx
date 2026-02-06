@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, UserPlus, X, Clock, Loader2 } from 'lucide-react';
 import { Button } from '../common';
 import { UserList } from './UserList';
 import { UserDetailModal } from './UserDetailModal';
 import { ResetStudentPasswordModal } from '../admin/ResetStudentPasswordModal';
+import { StudentSearchModal } from '../linking/StudentSearchModal';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { ApiService, type AdminUserStats } from '../../services/ApiService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export function ParentDashboard() {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const { linkRequests, cancelLinkRequest, refreshAll } = useNotifications();
     const [users, setUsers] = useState<AdminUserStats[]>([]);
     const [selectedUser, setSelectedUser] = useState<AdminUserStats | null>(null);
     const [resetPasswordUser, setResetPasswordUser] = useState<AdminUserStats | null>(null);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [cancellingId, setCancellingId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
 
     // Load users on mount
@@ -43,6 +49,20 @@ export function ParentDashboard() {
         navigate('/');
     };
 
+    const handleLinkSuccess = () => {
+        refreshAll();
+        loadUsers();
+    };
+
+    const handleCancelRequest = async (id: number) => {
+        setCancellingId(id);
+        try {
+            await cancelLinkRequest(id);
+        } finally {
+            setCancellingId(null);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
@@ -53,6 +73,7 @@ export function ParentDashboard() {
                         <h1 className="text-xl font-bold text-gray-900">Parent Dashboard</h1>
                     </div>
                     <div className="flex items-center gap-4">
+                        <NotificationBell />
                         <Button variant="ghost" onClick={handleLogout} className="text-sm">
                             <LogOut className="w-4 h-4" />
                             Log Out
@@ -69,10 +90,58 @@ export function ParentDashboard() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                 >
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">Student Overview</h2>
-                        <p className="text-gray-500">Select a student to view detailed progress reports.</p>
+                    <div className="mb-8 flex items-start justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Student Overview</h2>
+                            <p className="text-gray-500">Select a student to view detailed progress reports.</p>
+                        </div>
+                        <Button
+                            onClick={() => setShowLinkModal(true)}
+                            className="flex items-center gap-2"
+                        >
+                            <UserPlus className="w-4 h-4" />
+                            Link Student
+                        </Button>
                     </div>
+
+                    {/* Pending Link Requests */}
+                    {linkRequests.length > 0 && (
+                        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                            <h3 className="text-sm font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                Pending Link Requests
+                            </h3>
+                            <div className="space-y-2">
+                                {linkRequests.map(request => (
+                                    <div
+                                        key={request.id}
+                                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-yellow-100"
+                                    >
+                                        <div>
+                                            <p className="font-medium text-gray-900">
+                                                {request.studentDisplayName || request.studentUsername}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                @{request.studentUsername}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => handleCancelRequest(request.id)}
+                                            disabled={cancellingId === request.id}
+                                            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                        >
+                                            {cancellingId === request.id ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <X className="w-4 h-4" />
+                                            )}
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {loading ? (
                         <div className="flex justify-center py-12">
@@ -108,6 +177,13 @@ export function ParentDashboard() {
                     />
                 )}
             </AnimatePresence>
+
+            {/* Link Student Modal */}
+            <StudentSearchModal
+                isOpen={showLinkModal}
+                onClose={() => setShowLinkModal(false)}
+                onSuccess={handleLinkSuccess}
+            />
         </div>
     );
 }
