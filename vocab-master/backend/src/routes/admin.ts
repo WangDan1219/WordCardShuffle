@@ -221,7 +221,7 @@ router.patch('/users/:id/parent', (req, res) => {
 // Create New User
 router.post('/users', async (req, res) => {
     try {
-        const { username, password, role, parentId } = req.body;
+        const { username, password, role, parentId, email } = req.body;
 
         if (!username || !password || !role) {
             res.status(400).json({ error: 'Missing required fields' });
@@ -231,6 +231,22 @@ router.post('/users', async (req, res) => {
         if (!['student', 'parent', 'admin'].includes(role)) {
             res.status(400).json({ error: 'Invalid role' });
             return;
+        }
+
+        // Validate email format if provided
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                res.status(400).json({ error: 'Invalid email format' });
+                return;
+            }
+
+            // Check if email is already in use
+            const existingEmail = db.prepare('SELECT id FROM users WHERE email = ? COLLATE NOCASE').get(email);
+            if (existingEmail) {
+                res.status(409).json({ error: 'Email already in use' });
+                return;
+            }
         }
 
         // Check availability
@@ -245,10 +261,10 @@ router.post('/users', async (req, res) => {
         const result = db.transaction(() => {
             // Insert user
             const insert = db.prepare(`
-                INSERT INTO users (username, password_hash, display_name, role, parent_id)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO users (username, password_hash, display_name, role, parent_id, email)
+                VALUES (?, ?, ?, ?, ?, ?)
             `);
-            const info = insert.run(username, hash, username, role, parentId || null);
+            const info = insert.run(username, hash, username, role, parentId || null, email || null);
             const newId = info.lastInsertRowid;
 
             // Initialize stats
@@ -265,6 +281,43 @@ router.post('/users', async (req, res) => {
     } catch (error) {
         console.error('Create user error:', error);
         res.status(500).json({ error: 'Failed to create user' });
+    }
+});
+
+// Update User Email
+router.patch('/users/:id/email', requireRole(['admin']), (req, res) => {
+    try {
+        const userId = Number(req.params.id);
+        const { email } = req.body;
+
+        // Validate email format if provided
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                res.status(400).json({ error: 'Invalid email format' });
+                return;
+            }
+
+            // Check if email is already in use by another user
+            const existingEmail = db.prepare('SELECT id FROM users WHERE email = ? COLLATE NOCASE AND id != ?').get(email, userId);
+            if (existingEmail) {
+                res.status(409).json({ error: 'Email already in use' });
+                return;
+            }
+        }
+
+        const stmt = db.prepare('UPDATE users SET email = ? WHERE id = ?');
+        const result = stmt.run(email || null, userId);
+
+        if (result.changes === 0) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
+        res.json({ success: true, message: 'Email updated' });
+    } catch (error) {
+        console.error('Update email error:', error);
+        res.status(500).json({ error: 'Failed to update email' });
     }
 });
 

@@ -14,12 +14,21 @@ interface EditUserModalProps {
 export function EditUserModal({ user, allUsers, onClose, onSave }: EditUserModalProps) {
     const [role, setRole] = useState<'student' | 'parent' | 'admin'>(user.role);
     const [parentId, setParentId] = useState<number | null>(user.parent_id);
+    const [email, setEmail] = useState(user.email || '');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const parents = allUsers.filter(u => u.role === 'parent');
 
     const handleSave = async () => {
+        // Validate email if provided
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
         setLoading(true);
+        setError(null);
         try {
             if (role !== user.role) {
                 await ApiService.updateUserRole(user.id, role);
@@ -27,11 +36,16 @@ export function EditUserModal({ user, allUsers, onClose, onSave }: EditUserModal
             if (parentId !== user.parent_id) {
                 await ApiService.updateUserParent(user.id, parentId);
             }
+            // Update email if changed (for parent/admin roles)
+            const emailChanged = (email || null) !== (user.email || null);
+            if (emailChanged && (role === 'parent' || role === 'admin')) {
+                await ApiService.updateUserEmail(user.id, email || null);
+            }
             onSave();
             onClose();
-        } catch (error) {
-            console.error('Failed to update user', error);
-            alert('Failed to update user');
+        } catch (err) {
+            console.error('Failed to update user', err);
+            setError(err instanceof Error ? err.message : 'Failed to update user');
         } finally {
             setLoading(false);
         }
@@ -53,20 +67,16 @@ export function EditUserModal({ user, allUsers, onClose, onSave }: EditUserModal
                 </div>
 
                 <div className="p-6 space-y-6">
+                    {error && (
+                        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                         <div className="text-gray-900 font-semibold">{user.username}</div>
                     </div>
-
-                    {user.email && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <div className="flex items-center gap-2 text-gray-900">
-                                <Mail className="w-4 h-4 text-gray-400" />
-                                <span>{user.email}</span>
-                            </div>
-                        </div>
-                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
@@ -91,6 +101,28 @@ export function EditUserModal({ user, allUsers, onClose, onSave }: EditUserModal
                             ))}
                         </div>
                     </div>
+
+                    {(role === 'parent' || role === 'admin') && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <span className="flex items-center gap-1">
+                                    <Mail className="w-4 h-4" />
+                                    Email Address
+                                </span>
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    setError(null);
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="user@example.com"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Required for password reset via email.</p>
+                        </div>
+                    )}
 
                     {role === 'student' && (
                         <div>
